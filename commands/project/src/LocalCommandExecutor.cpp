@@ -3,10 +3,10 @@
 //
 #include "LocalCommandExecutor.h"
 
-cppcoro::task<void> LocalCommandExecutor::execute(Command &cmd) {
+cppcoro::task<void> LocalCommandExecutor::execute(Command &&cmd) {
     co_return cmd.execute();
 }
 
-cppcoro::task<> LocalCommandExecutor::rollback(RCommand &cmd) {
+cppcoro::task<> LocalCommandExecutor::rollback(RCommand &&cmd) {
     co_return cmd.rollback();
 }

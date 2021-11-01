@@ -10,7 +10,7 @@
 
 #include "CommandExecutor.h"
 
-class CommandBus {
+class CommandBus : public CommandExecutor {
 private:
     cppcoro::static_thread_pool thread_pool;
     std::vector<std::unique_ptr<CommandExecutor>> executors;
@@ -18,12 +18,15 @@ private:
 public:
     explicit CommandBus(unsigned int threadsCount = 1) : thread_pool(threadsCount) {}
 
-    cppcoro::task<> execute(Command &&command);
+    cppcoro::task<> execute(Command &&command) override;
 
-    cppcoro::task<> rollback(RCommand &&command);
+    cppcoro::task<> rollback(RCommand &&command) override;
 
     template <std::derived_from<CommandExecutor> T, typename... Args>
-    void addExecutor(Args &&...args) {
-        executors.emplace_back(std::make_unique<T>(std::forward<Args>(args)...));
+    T &addExecutor(Args &&...args) {
+        auto executor = std::make_unique<T>(std::forward<Args>(args)...);
+        auto &ref = *executor;
+        executors.emplace_back(std::move(executor));
+        return ref;
     }
 };

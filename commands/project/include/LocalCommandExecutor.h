@@ -9,7 +9,7 @@
 
 class LocalCommandExecutor : public CommandExecutor {
 public:
-    cppcoro::task<void> execute(Command &cmd) override;
+    cppcoro::task<void> execute(Command &&cmd) override;
 
-    cppcoro::task<void> rollback(RCommand &cmd) override;
+    cppcoro::task<void> rollback(RCommand &&cmd) override;
 };
