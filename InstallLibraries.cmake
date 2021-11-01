@@ -13,3 +13,5 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(boost-cmake ranges)
+
+link_libraries(Boost::boost)
