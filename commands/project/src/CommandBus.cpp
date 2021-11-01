@@ -3,14 +3,16 @@
 //
 #include "CommandBus.h"
 
-boost::asio::awaitable<void> CommandBus::execute(Command &&command) {
+cppcoro::task<> CommandBus::execute(Command &&command) {
+    co_await thread_pool.schedule();
     for (auto &executor : executors) {
-        co_await executor.execute(command);
+        co_await executor->execute(command);
     }
 }
 
-boost::asio::awaitable<void> CommandBus::rollback(RCommand &&command) {
+cppcoro::task<> CommandBus::rollback(RCommand &&command) {
+    co_await thread_pool.schedule();
     for (auto &executor : executors) {
-        co_await executor.rollback(command);
+        co_await executor->rollback(command);
     }
 }

@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include "Command.h"
-#include <boost/asio/awaitable.hpp>
+#include "command/Command.h"
+#include "cppcoro/task.hpp"
 
 class CommandExecutor {
 public:
-    virtual boost::asio::awaitable<void> execute(Command &cmd) = 0;
-    virtual boost::asio::awaitable<void> rollback(RCommand &cmd) = 0;
+    virtual cppcoro::task<void> execute(Command &cmd) = 0;
+    virtual cppcoro::task<void> rollback(RCommand &cmd) = 0;
 };

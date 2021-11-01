@@ -4,16 +4,26 @@
 
 #pragma once
 
+#include <cppcoro/static_thread_pool.hpp>
+#include <memory>
 #include <vector>
 
 #include "CommandExecutor.h"
 
 class CommandBus {
 private:
-    std::vector<CommandExecutor> executors;
+    cppcoro::static_thread_pool thread_pool;
+    std::vector<std::unique_ptr<CommandExecutor>> executors;
 
 public:
-    boost::asio::awaitable<void> execute(Command &&command);
+    explicit CommandBus(unsigned int threadsCount = 1) : thread_pool(threadsCount) {}
 
-    boost::asio::awaitable<void> rollback(RCommand &&command);
+    cppcoro::task<> execute(Command &&command);
+
+    cppcoro::task<> rollback(RCommand &&command);
+
+    template <std::derived_from<CommandExecutor> T, typename... Args>
+    void addExecutor(Args &&...args) {
+        executors.emplace_back(std::make_unique<T>(std::forward<Args>(args)...));
+    }
 };

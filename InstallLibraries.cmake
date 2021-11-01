@@ -12,6 +12,11 @@ FetchContent_Declare(
         GIT_REPOSITORY https://github.com/ericniebler/range-v3
 )
 
-FetchContent_MakeAvailable(boost-cmake ranges)
+FetchContent_Declare(
+        cppcoro
+        GIT_REPOSITORY https://github.com/arthurzam/cppcoro
+)
 
-link_libraries(Boost::boost)
+FetchContent_MakeAvailable(boost-cmake ranges cppcoro)
+
+link_libraries(cppcoro)
