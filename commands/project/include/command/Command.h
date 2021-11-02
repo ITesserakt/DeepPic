@@ -9,6 +9,8 @@
 class Command {
 public:
     virtual void execute() = 0;
+
+    virtual ~Command() = default;
 };
 
 class RCommand : public Command {
@@ -17,6 +19,6 @@ public:
 };
 
 template <typename T>
-concept Rollback = requires(T a) {
+concept Rollback = requires(T &a) {
     a.rollback();
 };

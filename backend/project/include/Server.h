@@ -4,9 +4,17 @@
 
 #pragma once
 
+#include <any>
 #include <cppcoro/task.hpp>
 
 class Server {
 public:
-    virtual cppcoro::task<> broadcast() = 0;
+    virtual unsigned int id() = 0;
+
+    virtual cppcoro::task<> broadcast(std::any) = 0;
+
+    template <typename T>
+    cppcoro::task<> broadcast(T value) {
+        co_await broadcast({value});
+    }
 };

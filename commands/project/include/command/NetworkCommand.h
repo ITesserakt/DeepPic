@@ -5,25 +5,26 @@
 #pragma once
 
 #include <iostream>
+#include <memory>
 
 #include "Command.h"
 
 namespace __detail {
-    template <std::derived_from<Command> C>
-    class NetworkCommandBase {
+    template <typename C>
+    requires std::is_base_of<Command, C>::value class NetworkCommandBase {
     protected:
         unsigned int clientId;
-        C command;
+        C *command;
 
     public:
         void execute() {
-            std::cout << "Running from remote: " << std::endl;
-            this->command.execute();
+            inner().execute();
         }
 
-        NetworkCommandBase(unsigned int clientId, C &&command) : clientId(clientId), command(command) {}
+        NetworkCommandBase(unsigned int clientId, C *command)
+            : clientId(clientId), command(command) {}
 
-        [[nodiscard]] C inner() const { return command; }
+        [[nodiscard]] C &inner() const { return *command; }
     };
 }// namespace __detail
 
@@ -34,20 +35,21 @@ public:
         this->__detail::NetworkCommandBase<C>::execute();
     }
 
-    NetworkCommand(unsigned int clientId, C &&command) : __detail::NetworkCommandBase<C>(clientId, std::forward<C>(command)) {}
+    NetworkCommand(unsigned int clientId, C *command)
+        : __detail::NetworkCommandBase<C>(clientId, command) {}
 };
 
 template <Rollback C>
 class NetworkCommand<C> : public __detail::NetworkCommandBase<C>, public RCommand {
 public:
     void rollback() override {
-        std::cout << "Running from remote: " << std::endl;
-        this->command.rollback();
+        this->inner().rollback();
     }
 
     void execute() override {
         this->__detail::NetworkCommandBase<C>::execute();
     }
 
-    NetworkCommand(unsigned int clientId, C &&command) : __detail::NetworkCommandBase<C>(clientId, std::forward<C>(command)) {}
+    NetworkCommand(unsigned int clientId, C *command)
+        : __detail::NetworkCommandBase<C>(clientId, command) {}
 };
