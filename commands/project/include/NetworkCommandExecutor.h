@@ -11,15 +11,17 @@
 #include "command/NetworkCommand.h"
 
 class NetworkCommandExecutor : public CommandExecutor {
-private:
-    std::shared_ptr<Server> server;
+public:
+    using Serializer = BoostSerializer;
 
-    NetworkCommand<Command> wrapCommand(Command &&command);
-    NetworkCommand<RCommand> wrapCommand(RCommand &&command);
+private:
+    std::shared_ptr<Server<Serializer>> server;
+
+    NetworkCommand wrapCommand(Command &&command);
 
 public:
     cppcoro::task<void> execute(Command &&cmd) override;
     cppcoro::task<void> rollback(RCommand &&cmd) override;
 
-    explicit NetworkCommandExecutor(std::shared_ptr<Server> server);
+    explicit NetworkCommandExecutor(std::shared_ptr<Server<Serializer>> server);
 };

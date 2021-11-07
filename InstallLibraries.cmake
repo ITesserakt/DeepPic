@@ -17,6 +17,11 @@ FetchContent_Declare(
         GIT_REPOSITORY https://github.com/arthurzam/cppcoro
 )
 
-FetchContent_MakeAvailable(boost-cmake ranges cppcoro)
+FetchContent_Declare(
+        cista
+        GIT_REPOSITORY https://github.com/felixguendling/cista
+)
+
+FetchContent_MakeAvailable(boost-cmake ranges cppcoro cista)
 
 link_libraries(cppcoro)
