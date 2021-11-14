@@ -15,4 +15,7 @@ target_link_libraries(client
         Qt5::Widgets
         )
 
+add_subdirectory(widgets/main_window)
+target_link_libraries(client MainWindow)
+target_include_directories(client PUBLIC widgets/main_window/include)
 
