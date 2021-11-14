@@ -3,7 +3,12 @@
 #include <QApplication>
 
 int main(int argc, char *argv[]) {
-    QApplication a(argc, argv);
+    QApplication app(argc, argv);
 
-    return QApplication::exec();
+    MainWindow window;
+    window.resize(800, 800);
+    window.setWindowTitle("DeepPic");
+    window.showMaximized();
+
+    return app.exec();
 }

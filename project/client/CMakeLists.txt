@@ -8,14 +8,12 @@ find_package(Qt5 COMPONENTS
         Widgets
         REQUIRED)
 
-add_executable(client src/main.cpp)
+
+add_executable(client src/main.cpp MainWindow.cpp include/MainWindow.h)
 target_link_libraries(client
         Qt5::Core
         Qt5::Gui
         Qt5::Widgets
         )
 
-add_subdirectory(widgets/main_window)
-target_link_libraries(client MainWindow)
-target_include_directories(client PUBLIC widgets/main_window/include)
-
+target_include_directories(client PUBLIC include)
