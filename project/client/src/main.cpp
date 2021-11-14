@@ -1,7 +1,7 @@
-//
-// Created by eremey on 14.11.2021.
-//
+#include <QApplication>
 
-int main() {
-    return 0;
+int main(int argc, char *argv[]) {
+    QApplication a(argc, argv);
+
+    return QApplication::exec();
 }
