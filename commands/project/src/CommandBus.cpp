@@ -1,18 +1,22 @@
 //
 // Created by tesserakt on 31.10.2021.
 //
+#include <cppcoro/schedule_on.hpp>
+
 #include "CommandBus.h"
 
-cppcoro::task<> CommandBus::execute(Command &&command) {
-    co_await thread_pool.schedule();
+void CommandBus::execute(Command &&command) {
     for (auto &executor : executors) {
-        co_await executor->execute(std::forward<Command &&>(command));
+        async.spawn(
+                executor->execute(std::forward<Command>(command)) |
+                cppcoro::schedule_on(thread_pool));
     }
 }
 
-cppcoro::task<> CommandBus::rollback(RCommand &&command) {
-    co_await thread_pool.schedule();
+void CommandBus::rollback(RCommand &&command) {
     for (auto &executor : executors) {
-        co_await executor->rollback(std::forward<RCommand &&>(command));
+        async.spawn(
+                executor->rollback(std::forward<RCommand>(command)) |
+                cppcoro::schedule_on(thread_pool));
     }
 }

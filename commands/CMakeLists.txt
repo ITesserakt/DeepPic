@@ -4,4 +4,4 @@ add_library(commands ${SOURCE_FILES})
 
 target_include_directories(commands PRIVATE ../backend/project/include
         PRIVATE project/include)
-target_link_libraries(commands backend)
+target_link_libraries(commands PUBLIC backend cppcoro)

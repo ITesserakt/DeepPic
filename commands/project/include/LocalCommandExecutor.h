@@ -4,8 +4,9 @@
 
 #pragma once
 
+#include <cppcoro/task.hpp>
+
 #include "CommandExecutor.h"
-#include "cppcoro/task.hpp"
 
 class LocalCommandExecutor : public CommandExecutor {
 public:

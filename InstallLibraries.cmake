@@ -8,20 +8,13 @@ FetchContent_Declare(
 )
 
 FetchContent_Declare(
-        ranges
-        GIT_REPOSITORY https://github.com/ericniebler/range-v3
-)
-
-FetchContent_Declare(
         cppcoro
         GIT_REPOSITORY https://github.com/arthurzam/cppcoro
 )
 
 FetchContent_Declare(
-        cista
-        GIT_REPOSITORY https://github.com/felixguendling/cista
+        smallvec
+        GIT_REPOSITORY https://github.com/ITesserakt/SmallVec
 )
 
-FetchContent_MakeAvailable(boost-cmake ranges cppcoro cista)
-
-link_libraries(cppcoro)
+FetchContent_MakeAvailable(boost-cmake cppcoro smallvec)
