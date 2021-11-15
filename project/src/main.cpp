@@ -5,27 +5,43 @@
 #include <cppcoro/cancellation_source.hpp>
 #include <cppcoro/sync_wait.hpp>
 #include <cppcoro/when_all.hpp>
+#include <cppcoro/when_all_ready.hpp>
 #include <iostream>
 
+#include "CommandBus.h"
+#include "HelloCommand.h"
+#include "LocalCommandExecutor.h"
+#include "NetworkCommandExecutor.h"
 #include "Server.h"
 
 class ConsoleServer : public Server<BoostSerializer> {
 private:
     std::vector<shared_socket> clients;
+    std::vector<std::function<cppcoro::task<>(std::string)>> callbacks;
 
 public:
     cppcoro::task<> shutdown() override {
         for (auto &client : clients) {
-            client->close_recv();
-            client->close_send();
             co_await client->disconnect();
         }
+        isActive = false;
+        source.request_cancellation();
+    }
+
+    template <typename F>
+    void registerCallback(F &&callback) {
+        callbacks.emplace_back(std::forward<F>(callback));
     }
 
 protected:
     cppcoro::task<> broadcast(std::string data) override {
         std::cout << "Broadcasting: " << data << std::endl;
-        co_return;
+        cppcoro::async_scope scope;
+        for (auto &client : clients)
+            scope.spawn([&]() -> cppcoro::task<> {
+                co_await client->send(data.data(), data.size(), source.token());
+            }());
+        co_await scope.join();
     }
 
     void clientAttached(shared_socket client) override {
@@ -34,21 +50,33 @@ protected:
         clients.emplace_back(client);
     }
 
-    void onReceived(std::string data) override {
+    cppcoro::task<> onReceived(std::string data) override {
         std::cout << "Received: " << data << std::endl;
-        if (data.starts_with("shutdown"))
-            source.request_cancellation();
+        for (const auto &callback : callbacks)
+            co_await callback(data);
     }
 };
 
 int main(int argc, char **argv) {
-    ConsoleServer server;
+    using namespace std::chrono_literals;
+
+    auto server = std::make_shared<ConsoleServer>();
     auto localhost = cppcoro::net::ipv4_address::from_string(argv[1]).value();
     auto endpoint = cppcoro::net::ipv4_endpoint(localhost, atoi(argv[2]));
 
-    server.createSerializer();
+    auto bus = CommandBus();
+    bus.addExecutor<LocalCommandExecutor>();
+    bus.addExecutor<NetworkCommandExecutor>(server);
+
+    server->registerCallback([&](std::string data) -> cppcoro::task<> {
+        if (data.starts_with("shutdown"))
+            co_await server->shutdown();
+        else if (data.starts_with("execute"))
+            co_await bus.execute(HelloCommand());
+    });
+
+    server->createSerializer();
     cppcoro::sync_wait(cppcoro::when_all(
-            server.start(endpoint),
-            server.listen()));
-    cppcoro::sync_wait(server.shutdown());
+            server->start(endpoint),
+            server->listen()));
 }

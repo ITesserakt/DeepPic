@@ -31,11 +31,14 @@ private:
 
         char buffer[1024];
 
-        while (isActive) {
-            std::size_t read = co_await client.recv(buffer, 1024, source.token());
-            std::cout << "Read " << read << " next bytes..." << std::endl;
-            onReceived(std::string{buffer, buffer + read});
-        }
+        try {
+            while (isActive) {
+                std::size_t read = co_await client.recv(buffer, 1024, source.token());
+                std::cout << "Read " << read << " next bytes..." << std::endl;
+                co_await onReceived(std::string{buffer, buffer + read});
+            }
+        } catch (const cppcoro::operation_cancelled &) {
+        } catch (const std::exception &ex) { throw std::runtime_error(std::string("Unknown exception happened: ") + ex.what()); }
     }
 
 protected:
@@ -52,16 +55,22 @@ protected:
 
     cppcoro::task<> loop(cppcoro::net::socket &&socket) {
         cppcoro::async_scope scope;
-        while (isActive) {
-            auto connection = std::make_shared<cppcoro::net::socket>(cppcoro::net::socket::create_tcpv4(async));
-            co_await socket.accept(*connection, source.token());
-            clientAttached(connection);
-            scope.spawn(handleIncoming(*connection));
-        }
+        std::exception_ptr currentEx;
+        try {
+            while (isActive) {
+                auto connection = std::make_shared<cppcoro::net::socket>(cppcoro::net::socket::create_tcpv4(async));
+                co_await socket.accept(*connection, source.token());
+                clientAttached(connection);
+                scope.spawn(handleIncoming(*connection));
+            }
+        } catch (const cppcoro::operation_cancelled &) {
+        } catch (...) { currentEx = std::current_exception(); }
+
         co_await scope.join();
+        if (currentEx) std::rethrow_exception(currentEx);
     }
 
-    virtual void onReceived(std::string data) = 0;
+    virtual cppcoro::task<> onReceived(std::string data) = 0;
 
 public:
     unsigned int id() {
@@ -80,6 +89,7 @@ public:
     }
 
     cppcoro::task<> start(const cppcoro::net::ipv4_endpoint &endpoint) {
+        auto exit = cppcoro::on_scope_exit([&] { async.stop(); });
         try {
             auto serverSocket = cppcoro::net::socket::create_tcpv4(async);
             serverId = serverSocket.native_handle();
@@ -93,9 +103,8 @@ public:
     }
 
     cppcoro::task<> listen() {
-        co_await cppcoro::when_all(
-                [&]() -> cppcoro::task<> { async.process_events(); co_return ; }(),
-                [&]() -> cppcoro::task<> { cppcoro::on_scope_exit([&] { async.stop(); }); co_return ; }());
+        async.process_events();
+        co_return;
     }
 
     virtual cppcoro::task<> shutdown() = 0;
