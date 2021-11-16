@@ -8,8 +8,16 @@ find_package(Qt5 COMPONENTS
         Widgets
         REQUIRED)
 
+set(WITH_SANITIZER ON)
+if (WITH_SANITIZER)
+    add_compile_options(-fsanitize=address)
+    add_link_options(-fsanitize=address)
+endif ()
 
-add_executable(client src/main.cpp MainWindow.cpp include/MainWindow.h)
+set(SOURCES src/main.cpp src/MainWindow.cpp  src/PaintScene.cpp src/Palette.cpp src/Changer.cpp)
+set(HEADER_FILES include/Palette.h include/MainWindow.h include/PaintScene.h include/Changer.h)
+
+add_executable(client ${SOURCES} ${HEADER_FILES})
 target_link_libraries(client
         Qt5::Core
         Qt5::Gui
