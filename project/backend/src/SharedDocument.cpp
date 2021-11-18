@@ -1,12 +1,9 @@
-#include <iostream>
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
-#include <boost/log/trivial.hpp>
+#include <iostream>
 
 #include "SharedDocument.h"
-#include "Client.h"
 #include <boost/log/common.hpp>
-#include <boost/log/sinks.hpp>
 
 SharedDocument::SharedDocument() : acceptor_(service_), port_(start_since_port++) {
     generateAuthToken();
@@ -45,30 +42,34 @@ bool SharedDocument::checkAuthToken(std::string &token) {
     return token == auth_token_;
 }
 
-void SharedDocument::startAcceptClients() {
-    std::shared_ptr<Client> client(new Client(service_,
-                                              [this](std::string command, Client *author) {
-                                                  return this->sharingCommand(command, author);
-                                              },
-                                              [this](std::string &token) { return this->checkAuthToken(token); },
-                                              [this](Client *client) { return this->onDeleteClient(client); }));
-    clients.push_back(client);
 
-    acceptor_.async_accept(client->sock(), boost::bind(&SharedDocument::handleAcceptClient, this, client,
-                                                       boost::asio::placeholders::error));
+void SharedDocument::startAcceptClients() {
+    std::shared_ptr<DocumentClient> client(new DocumentClient(
+            service_,
+            [this](std::string command, BaseClient *author) {
+                return this->sharingCommand(command, author);
+            },
+            [this](BaseClient *client) { return this->deleteClient(client); },
+            [this](std::string &token) { return this->checkAuthToken(token); }));
+    clients_.push_back(client);
+
+    acceptor_.async_accept(client->getSock(), boost::bind(&SharedDocument::handleAcceptClient, this, client,
+                                                          boost::asio::placeholders::error));
 }
 
-void SharedDocument::sharingCommand(std::string &command, Client *author) {
-    for (auto &client: clients) {
+
+void SharedDocument::sharingCommand(std::string &command, BaseClient *author) {
+    for (auto &client : clients_) {
         if (&(*client) != author) {
             client->writeCommand(command);
         }
     }
 }
 
-void SharedDocument::onDeleteClient(Client *client) {
-    auto pos = clients.begin();
-    for (auto &cl: clients) {
+
+void SharedDocument::deleteClient(BaseClient *client) {
+    auto pos = clients_.begin();
+    for (auto &cl : clients_) {
         if (&(*cl) == client) {
             break;
         }
@@ -76,29 +77,35 @@ void SharedDocument::onDeleteClient(Client *client) {
     }
     try {
         std::cerr << "delete client" << std::endl;
-        clients.erase(pos);
-    }
-    catch (...) {
-
+        clients_.erase(pos);
+    } catch (...) {
     }
 }
 
-void SharedDocument::handleAcceptClient(std::shared_ptr<Client> client, const boost::system::error_code &err) {
+
+void SharedDocument::handleAcceptClient(std::shared_ptr<DocumentClient> client, const boost::system::error_code &err) {
     if (err) {
-        onDeleteClient(&(*client));
+        deleteClient(&(*client));
         std::cerr << "Error while accept client" << std::endl;
         return;
     }
 
     std::cerr << "Accept client" << std::endl;
-    client->readAuthToken();
+    client->afterConnect();
     startAcceptClients();
 }
 
-void SharedDocument::init_start_port(int port) {
-    SharedDocument::start_since_port = port;
-}
 
 void SharedDocument::run() {
     service_.run();
+}
+
+
+int SharedDocument::getPort() {
+    return port_;
+}
+
+
+std::string SharedDocument::getAuthToken() {
+    return auth_token_;
 }
