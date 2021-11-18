@@ -27,10 +27,10 @@ MainWindow::MainWindow(QWidget *parent) :
     setCentralWidget(qGraphicsView);
 
     // MenuBar
-    QAction *file_open = new QAction("&Open", this);
-    QAction *file_close = new QAction("&Close", this);
-    QAction *file_save = new QAction("&Save", this);
-    QAction *file_save_as = new QAction("&Save as", this);
+    auto *file_open = new QAction("&Open", this);
+    auto *file_close = new QAction("&Close", this);
+    auto *file_save = new QAction("&Save", this);
+    auto *file_save_as = new QAction("&Save as", this);
     QMenu *file;
     file = menuBar()->addMenu("File");
     file->addAction(file_open);
@@ -38,14 +38,14 @@ MainWindow::MainWindow(QWidget *parent) :
     file->addAction(file_save);
     file->addAction(file_save_as);
 
-    QAction *edit_undo = new QAction("&Undo", this);
-    QAction *edit_redo = new QAction("&Redo", this);
+    auto *edit_undo = new QAction("&Undo", this);
+    auto *edit_redo = new QAction("&Redo", this);
     QMenu *edit;
     edit = menuBar()->addMenu("Edit");
     edit->addAction(edit_undo);
     edit->addAction(edit_redo);
 
-    QAction *help_help = new QAction("&Help", this);
+    auto *help_help = new QAction("&Help", this);
     QMenu *help;
     help = menuBar()->addMenu("Help");
     help->addAction(help_help);
@@ -57,7 +57,7 @@ MainWindow::MainWindow(QWidget *parent) :
     addToolBar(parameters_panel);
     parameters_panel->setFixedHeight(40);
 
-    QToolBar *right_panel = new QToolBar;
+    auto *right_panel = new QToolBar;
     addToolBar(Qt::RightToolBarArea, right_panel);
     right_panel->setFixedWidth(400);
 
@@ -66,7 +66,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(toolsPanel->actions()[0], &QAction::triggered, this, &MainWindow::slotBrush);
     connect(this, &MainWindow::TemporarySignal, scene, &PaintScene::PaintCurveSlot);
-    connect(scene, &PaintScene::PushCurve, this, &MainWindow::TemporaryWriterSlot);
+    //connect(scene, &PaintScene::PushCurve, this, &MainWindow::TemporaryWriterSlot);
 
 
     //  Status bar
@@ -95,39 +95,39 @@ void MainWindow::slotBrush() {
         scene->SetBrush(30, 0, 180, 40, 255);
         scene->setSceneRect(0, 0, qGraphicsView->width() - 20, qGraphicsView->height() - 20);
 
-        QWidget *dummy = new QWidget();
+        auto *dummy = new QWidget();
         dummy->setFixedWidth(40);
         parameters_panel->addWidget(dummy);
 
-        Changer *size_changer = new Changer("Size", 30, 500, this);
+        auto *size_changer = new Changer("Size", 30, 500, this);
         connect(size_changer, QOverload<int>::of(&Changer::valueChanged), scene, &PaintScene::SetBrushSize);
         parameters_panel->addWidget(size_changer);
         parameters_panel->addSeparator();
 
 
-        Palette *palette = new Palette;
+        auto *palette = new Palette;
         palette->SetColor(0, 180, 40, 255);
 
-        Changer *opacity_changer = new Changer("Opacity", 255, 255, this);
+        auto *opacity_changer = new Changer("Opacity", 255, 255, this);
         connect(opacity_changer, QOverload<int>::of(&Changer::valueChanged), scene,
                 (&PaintScene::SetTransparencySlot));
 
 
-        Changer *red_changer = new Changer("Red", 0, 255, this);
+        auto *red_changer = new Changer("Red", 0, 255, this);
         connect(red_changer, QOverload<int>::of(&Changer::valueChanged), scene,
                 (&PaintScene::SetRedSlot));
         connect(red_changer, QOverload<int>::of(&Changer::valueChanged), palette,
                 (&Palette::SetRed));
         parameters_panel->addWidget(red_changer);
 
-        Changer *green_changer = new Changer("Green", 180, 255, this);
+        auto *green_changer = new Changer("Green", 180, 255, this);
         connect(green_changer, QOverload<int>::of(&Changer::valueChanged), scene,
                 (&PaintScene::SetGreenSlot));
         connect(green_changer, QOverload<int>::of(&Changer::valueChanged), palette,
                 (&Palette::SetGreen));
         parameters_panel->addWidget(green_changer);
 
-        Changer *blue_changer = new Changer("Blue", 40, 255, this);
+        auto *blue_changer = new Changer("Blue", 40, 255, this);
         connect(blue_changer, QOverload<int>::of(&Changer::valueChanged), scene,
                 (&PaintScene::SetBlueSlot));
         connect(blue_changer, QOverload<int>::of(&Changer::valueChanged), palette,
@@ -146,19 +146,7 @@ void MainWindow::slotBrush() {
     }
     scene->ChangeBrushStatus();
 }
-void MainWindow::TemporaryWriterSlot(const Curve &curve) {
 
-    std::ofstream outf("House.txt", std::ios::app);
-
-    outf << curve.brush_size << " " << curve.color_red << " " << curve.color_green << " " << curve.color_blue << " " <<
-            curve.coords.size() << std::endl;
-    for (auto& point: curve.coords) {
-        outf << point.x() << " " << point.y() << " ";
-    }
-    outf << std::endl;
-
-    outf.close();
-}
 void MainWindow::executeBrush(const Curve& curve) {
     if (curve.brush_size < 0) {
         throw std::invalid_argument("Invalid size");

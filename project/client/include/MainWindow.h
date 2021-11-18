@@ -38,7 +38,6 @@ private:
 private slots:
     void slotBrush();
     void slotTimer();
-    void TemporaryWriterSlot(const Curve& curve);
 
 public:
     void executeBrush(const Curve& curve);
