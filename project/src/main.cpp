@@ -58,25 +58,4 @@ protected:
 };
 
 int main(int argc, char **argv) {
-    using namespace std::chrono_literals;
-
-    auto server = std::make_shared<ConsoleServer>();
-    auto localhost = cppcoro::net::ipv4_address::from_string(argv[1]).value();
-    auto endpoint = cppcoro::net::ipv4_endpoint(localhost, atoi(argv[2]));
-
-    auto bus = CommandBus();
-    bus.addExecutor<LocalCommandExecutor>();
-    bus.addExecutor<NetworkCommandExecutor>(server);
-
-    server->registerCallback([&](std::string data) -> cppcoro::task<> {
-        if (data.starts_with("shutdown"))
-            co_await server->shutdown();
-        else if (data.starts_with("execute"))
-            co_await bus.execute(HelloCommand());
-    });
-
-    server->createSerializer();
-    cppcoro::sync_wait(cppcoro::when_all(
-            server->start(endpoint),
-            server->listen()));
 }
