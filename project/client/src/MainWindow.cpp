@@ -59,14 +59,10 @@ MainWindow::MainWindow(QWidget *parent) :
     addToolBar(Qt::RightToolBarArea, right_panel);
     right_panel->setFixedWidth(400);
 
+    toolsPanel = new ToolsPanel;
+    addToolBar(Qt::LeftToolBarArea, toolsPanel);
 
-    QPixmap brush_pm("brush.png");
-    //QAction *brush = new QAction(QIcon(brush_pm), "&Brush", this);
-    QToolBar *tools_panel = new QToolBar;
-    addToolBar(Qt::LeftToolBarArea, tools_panel);
-    QAction *brush = tools_panel->addAction(QIcon(brush_pm), "Brush");
-    tools_panel->addAction(brush);
-    connect(brush, &QAction::triggered, this, &MainWindow::slotBrush);
+    connect(toolsPanel->actions()[0], &QAction::triggered, this, &MainWindow::slotBrush);
     connect(this, &MainWindow::TemporarySignal, scene, &PaintScene::PaintCurveSlot);
     connect(scene, &PaintScene::PushCurve, this, &MainWindow::TemporaryWriterSlot);
 
@@ -85,50 +81,6 @@ MainWindow::~MainWindow() {
 
 void MainWindow::slotTimer() {
     scene->setSceneRect(0, 0, qGraphicsView->width() - 20, qGraphicsView->height() - 20);
-    std::ifstream isf ("House.txt");
-    Curve curve;
-    int i = 0;
-    while (i < 1) {
-        isf >> curve.brush_size >> curve.color_red >> curve.color_green >> curve.color_blue;
-
-        size_t curve_size = 0;
-        isf >> curve_size;
-
-        QPointF point;
-        qreal point_x = 0;
-        qreal point_y = 0;
-
-        for (size_t i = 0; i < curve_size; ++i) {
-
-            isf >> point_x >> point_y;
-            point.setX(point_x);
-            point.setY(point_y);
-
-            curve.coords.push_back(point);
-            //std::cout << point.j << " " << point.i << std::endl;
-        }
-        temporary_read_position = isf.tellg();
-        emit(TemporarySignal(curve));
-        i++;
-    }
-//    isf >> curve.brush_size >> curve.color_red >> curve.color_green >> curve.color_blue;
-//
-//    size_t curve_size = 0;
-//    isf >> curve_size;
-//
-//    Point point;
-//    for (size_t i = 0; i < curve_size; ++i) {
-//        isf >> point.i >> point.j;
-//        curve.coords.push_back(point);
-//    }
-//    temporary_read_position = isf.tellg();
-
-    isf.close();
-
-
-    std::cout << "slotTimer\n";
-    timer->stop();
-    emit(TemporarySignal(curve));
 }
 
 void MainWindow::slotBrush() {

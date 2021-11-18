@@ -6,6 +6,7 @@
 #include <QPushButton>
 
 #include "PaintScene.h"
+#include "ToolsPanel.h"
 
 class MainWindow : public QMainWindow
 {
@@ -24,6 +25,7 @@ private:
 
     QToolBar *parameters_panel;
 
+    ToolsPanel *toolsPanel;
     QTimer *timer;
 
 private:

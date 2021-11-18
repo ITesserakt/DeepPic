@@ -14,8 +14,8 @@ if (WITH_SANITIZER)
     add_link_options(-fsanitize=address)
 endif ()
 
-set(SOURCES src/MainWindow.cpp  src/PaintScene.cpp src/Palette.cpp src/Changer.cpp)
-set(HEADER_FILES include/Palette.h include/MainWindow.h include/PaintScene.h include/Changer.h)
+set(SOURCES src/MainWindow.cpp  src/PaintScene.cpp src/Palette.cpp src/Changer.cpp src/ToolsPanel.cpp)
+set(HEADER_FILES include/Palette.h include/MainWindow.h include/PaintScene.h include/Changer.h include/ToolsPanel.h)
 
 add_executable(client src/main.cpp  ${SOURCES} ${HEADER_FILES})
 target_link_libraries(client
