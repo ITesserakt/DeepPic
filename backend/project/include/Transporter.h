@@ -15,6 +15,9 @@ class Transporter {
 private:
     std::unique_ptr<S> serializer;
 
+protected:
+    virtual cppcoro::task<> send(std::ostringstream &stream) = 0;
+
 public:
     virtual unsigned int id() = 0;
 
@@ -24,8 +27,6 @@ public:
     }
 
     virtual void onReceived(std::string data) = 0;
-
-    virtual cppcoro::task<> send(std::ostringstream &stream) = 0;
 
     template <typename T>
     cppcoro::task<> send(T &data) {
