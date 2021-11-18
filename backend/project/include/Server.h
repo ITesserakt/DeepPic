@@ -11,6 +11,7 @@
 #include <cppcoro/net/socket.hpp>
 #include <cppcoro/task.hpp>
 #include <cppcoro/when_all.hpp>
+#include <cppcoro/io_service.hpp>
 #include <iostream>
 #include <memory>
 
