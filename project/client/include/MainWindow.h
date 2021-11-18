@@ -16,7 +16,7 @@ public:
     ~MainWindow();
 
 signals:
-    void TemporarySignal(const Curve& curve);
+    void TemporarySignal(const Curve& curve); ///
 
 private:
     PaintScene *scene;
@@ -24,8 +24,13 @@ private:
 
     QToolBar *parameters_panel;
 
+    QTimer *timer;
+
 private:
+    long temporary_read_position = 0;
 
 private slots:
     void slotBrush();
+    void slotTimer();
+    void TemporaryWriterSlot(const Curve& curve);
 };

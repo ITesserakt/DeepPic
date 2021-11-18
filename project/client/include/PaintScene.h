@@ -6,18 +6,18 @@
 #include <QDebug>
 #include <QColor>
 
-struct point {
+struct Point {
     int32_t i = 0;
     int32_t j = 0;
 };
 
 struct Curve {
-    int32_t brush_size = 0;
+    double brush_size = 0;
     int32_t color_red = 0;
     int32_t color_green = 0;
     int32_t color_blue = 0;
 
-    std::vector<point> coords;
+    std::vector<QPointF> coords;
 };
 
 class PaintScene : public QGraphicsScene
@@ -33,6 +33,9 @@ public:
     bool BrushStatus();
     void SetBrushSize(qreal brush_size = 10);
     void SetBrush(qreal size, int red, int green, int blue, int opacity);
+
+signals:
+    void PushCurve(const Curve& curve);
 
 public slots:
     void SetBrushSizeSlot(int size);

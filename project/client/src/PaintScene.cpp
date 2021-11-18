@@ -29,7 +29,8 @@ void PaintScene::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
 
 
 void PaintScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
-    std::cout << line.size() << std::endl;
+    PushCurve({brush_size, brush_color.red(), brush_color.green(), brush_color.blue(),
+               line});
     line.clear();
 }
 void PaintScene::ChangeBrushStatus() {
@@ -71,16 +72,17 @@ void PaintScene::SetBrush(qreal size, int red, int green, int blue, int opacity)
     brush_color.setRgb(red, green, blue, opacity);
 }
 void PaintScene::PaintCurveSlot(const Curve &curve) {
-    assert(!curve.coords.empty());
+    assert(curve.coords.size() > 1);
     assert(curve.color_red < 256 && curve.color_red >= 0);
     assert(curve.color_green < 256 && curve.color_green >= 0);
     assert(curve.color_blue < 256 && curve.color_blue >= 0);
 
-    for (int i = 0; i < curve.coords.size() - 2; ++i) {
-        addLine(curve.coords[i].i,
-                curve.coords[i].j,
-                curve.coords[i + 1].i,
-                curve.coords[i + 1].j,
+    for (int i = 1; i < curve.coords.size(); ++i) {
+//        std::cout << curve.coords[i].x() << "\n";
+        addLine(curve.coords[i].x(),
+                curve.coords[i].y() ,
+                curve.coords[i - 1].x(),
+                curve.coords[i - 1].y(),
                 QPen(QColor(curve.color_red, curve.color_green, curve.color_blue),
                      curve.brush_size, Qt::SolidLine, Qt::RoundCap));
     }
