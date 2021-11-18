@@ -18,14 +18,12 @@ include(InstallLibraries.cmake)
 
 add_subdirectory(commands)
 add_subdirectory(backend)
+add_subdirectory(client)
 
 add_executable(main ${SOURCE_FILES})
 
-target_link_libraries(main PRIVATE commands)
 if (NOT WIN32)
   target_link_libraries(main PRIVATE pthread)
 endif ()
 
-target_include_directories(main PRIVATE commands/project/include)
-target_include_directories(main PRIVATE backend/project/include)
 target_include_directories(main PRIVATE project/include)
