@@ -10,7 +10,7 @@ SharedDocument::SharedDocument() : acceptor_(service_), port_(start_since_port++
 }
 
 void SharedDocument::generateAuthToken() {
-    auth_token_ = "dummy_aboba";
+    authToken_ = "dummy_aboba";
 }
 
 void SharedDocument::startShared() {
@@ -39,7 +39,7 @@ void SharedDocument::startShared() {
 
 
 bool SharedDocument::checkAuthToken(std::string &token) {
-    return token == auth_token_;
+    return token == authToken_;
 }
 
 
@@ -47,7 +47,7 @@ void SharedDocument::startAcceptClients() {
     std::shared_ptr<DocumentClient> client(new DocumentClient(
             service_,
             [this](std::string command, BaseClient *author) {
-                return this->sharingCommand(command, author);
+                return this->commandHandler(command, author);
             },
             [this](BaseClient *client) { return this->deleteClient(client); },
             [this](std::string &token) { return this->checkAuthToken(token); }));
@@ -58,7 +58,7 @@ void SharedDocument::startAcceptClients() {
 }
 
 
-void SharedDocument::sharingCommand(std::string &command, BaseClient *author) {
+void SharedDocument::commandHandler(std::string &command, BaseClient *author) {
     for (auto &client : clients_) {
         if (&(*client) != author) {
             client->writeCommand(command);
@@ -107,5 +107,9 @@ int SharedDocument::getPort() {
 
 
 std::string SharedDocument::getAuthToken() {
-    return auth_token_;
+    return authToken_;
+}
+SharedDocument::~SharedDocument() {
+    delete getDocument_;
+    delete sharingCommand_;
 }

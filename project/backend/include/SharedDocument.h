@@ -7,6 +7,8 @@
 #include "DocumentClient.h"
 #include "Settings.h"
 
+class IManageCommand;
+
 class SharedDocument {
 public:
     static int start_since_port;// начиная с какого порта начнут создаваться объекты SharedDocument
@@ -19,6 +21,8 @@ public:
 
     std::string getAuthToken();
 
+    ~SharedDocument();
+
 private:
     void generateAuthToken();
 
@@ -30,21 +34,20 @@ private:
 
     bool checkAuthToken(std::string &token);
 
-    void sharingCommand(std::string &command, BaseClient *author);
+    void commandHandler(std::string &command, BaseClient *author);
 
     void run();
 
-    void getDocumentFromClient();
-
-    void handleGetDocumentFromClient(const boost::system::error_code &err, std::size_t bytes_transferred);
-
-    void sendDocumentToNewClients();
-
     boost::asio::io_service service_;
-    std::string auth_token_;
+    std::string authToken_;
     boost::asio::ip::tcp::acceptor acceptor_;
     int port_;
     std::vector<std::shared_ptr<DocumentClient>> clients_;
+
+    IManageCommand *sharingCommand_;
+    IManageCommand *getDocument_;
+
+
     std::vector<std::shared_ptr<DocumentClient>> toGetDocument_;
     char document_[MAX_DOCUMENT_LENGTH];
 };

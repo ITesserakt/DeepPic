@@ -23,7 +23,7 @@ private:
     void authErrorHandler(const boost::system::error_code &err, std::size_t bytes_transferred);
 
 
-    std::function<bool(std::string &)> check_auth_token_;
+    std::function<bool(std::string &)> checkAuthToken_;
 
-    bool is_auth = false;
+    bool isAuth_ = false;
 };
