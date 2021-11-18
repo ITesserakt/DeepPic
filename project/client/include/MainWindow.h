@@ -7,6 +7,7 @@
 
 #include "PaintScene.h"
 #include "ToolsPanel.h"
+#include "ParametersPanel.h"
 
 class MainWindow : public QMainWindow
 {
@@ -26,6 +27,9 @@ private:
     QToolBar *parameters_panel;
 
     ToolsPanel *toolsPanel;
+
+    ParametersPanel *parametersPanel;
+
     QTimer *timer;
 
 private:

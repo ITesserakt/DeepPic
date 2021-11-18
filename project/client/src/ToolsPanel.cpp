@@ -23,6 +23,4 @@ ToolsPanel::ToolsPanel(QWidget *parent) : QToolBar(parent) {
     QAction *scaling = addAction(pixmap, "S");
     QAction *loupe = addAction(pixmap, "L");
     QAction *primitives = addAction(pixmap, "P");
-
-
 }

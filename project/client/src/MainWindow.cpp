@@ -51,6 +51,8 @@ MainWindow::MainWindow(QWidget *parent) :
     help->addAction(help_help);
 
     // ToolBars
+//    parametersPanel = new ParametersPanel;
+//    addToolBar(parametersPanel);
     parameters_panel = new QToolBar;
     addToolBar(parameters_panel);
     parameters_panel->setFixedHeight(40);
@@ -76,7 +78,6 @@ MainWindow::MainWindow(QWidget *parent) :
 }
 
 MainWindow::~MainWindow() {
-//    free(qGraphicsView);
 }
 
 void MainWindow::slotTimer() {
@@ -84,9 +85,13 @@ void MainWindow::slotTimer() {
 }
 
 void MainWindow::slotBrush() {
+
     if (scene->BrushStatus()) {
         parameters_panel->clear();
+        //parametersPanel->clear();
     } else {
+        //parametersPanel->setBrush();
+
         scene->SetBrush(30, 0, 180, 40, 255);
         scene->setSceneRect(0, 0, qGraphicsView->width() - 20, qGraphicsView->height() - 20);
 
