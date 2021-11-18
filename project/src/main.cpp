@@ -3,7 +3,6 @@
 //
 
 #include "CommandBus.h"
-#include "HelloCommand.h"
 #include "LocalCommandExecutor.h"
 #include "NetworkCommandExecutor.h"
 

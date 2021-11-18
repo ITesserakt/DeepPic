@@ -18,15 +18,15 @@ public:
     template <Serializable<OArchive> T, typename O>
     O &serialize(T &data, O &ostream) {
         OArchive out(ostream);
-        out &BOOST_SERIALIZATION_NVP(data);
+        out &data;
         return ostream;
     }
 
     template <Serializable<IArchive> T, typename I>
-    T *deserialize(I &&is) {
+    T deserialize(I &is) {
         IArchive in(is);
-        T *result;
-        in &BOOST_SERIALIZATION_NVP(result);
+        T result;
+        in &result;
         return result;
     }
 };

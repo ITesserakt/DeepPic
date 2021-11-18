@@ -10,7 +10,7 @@
 template <typename T, typename IStream, typename OStream>
 concept Serializer = requires(T serializer, int data, OStream &os, IStream &is) {
     { serializer.serialize(data, os) } -> std::same_as<OStream &>;
-    { serializer.template deserialize<int>(is) } -> std::same_as<int *>;
+    { serializer.template deserialize<int>(is) } -> std::same_as<int>;
 };
 
 template <typename T, typename A>
