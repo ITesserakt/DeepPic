@@ -14,10 +14,10 @@ if (WITH_SANITIZER)
     add_link_options(-fsanitize=address)
 endif ()
 
-set(SOURCES src/main.cpp src/MainWindow.cpp  src/PaintScene.cpp src/Palette.cpp src/Changer.cpp)
+set(SOURCES src/MainWindow.cpp  src/PaintScene.cpp src/Palette.cpp src/Changer.cpp)
 set(HEADER_FILES include/Palette.h include/MainWindow.h include/PaintScene.h include/Changer.h)
 
-add_executable(client ${SOURCES} ${HEADER_FILES})
+add_executable(client src/main.cpp  ${SOURCES} ${HEADER_FILES})
 target_link_libraries(client
         Qt5::Core
         Qt5::Gui
@@ -25,3 +25,17 @@ target_link_libraries(client
         )
 
 target_include_directories(client PUBLIC include)
+
+add_executable(test src/main_window_test.cpp ${SOURCES} ${HEADER_FILES})
+find_package(GTest)
+
+target_link_libraries(test PRIVATE
+        GTest::Main
+        Qt5::Core
+        Qt5::Gui
+        Qt5::Widgets
+        )
+
+add_test(NAME test COMMAND test)
+target_include_directories(test PUBLIC include)
+
