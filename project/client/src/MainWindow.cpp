@@ -14,7 +14,7 @@
 // Temporary
 #include <fstream>
 
-
+#include <stdexcept>
 
 #include <iostream>
 
@@ -84,6 +84,7 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::slotTimer() {
+    scene->setSceneRect(0, 0, qGraphicsView->width() - 20, qGraphicsView->height() - 20);
     std::ifstream isf ("House.txt");
     Curve curve;
     int i = 0;
@@ -189,6 +190,7 @@ void MainWindow::slotBrush() {
     scene->ChangeBrushStatus();
 }
 void MainWindow::TemporaryWriterSlot(const Curve &curve) {
+
     std::ofstream outf("House.txt", std::ios::app);
 
     outf << curve.brush_size << " " << curve.color_red << " " << curve.color_green << " " << curve.color_blue << " " <<
@@ -199,6 +201,24 @@ void MainWindow::TemporaryWriterSlot(const Curve &curve) {
     outf << std::endl;
 
     outf.close();
+}
+void MainWindow::executeBrush(const Curve& curve) {
+    if (curve.brush_size < 0) {
+        throw std::invalid_argument("Invalid size");
+    }
+    if (curve.color_red < 0 || curve.color_red > 255) {
+        throw std::invalid_argument("Invalid red color");
+    }
+    if (curve.color_green < 0 || curve.color_green > 255) {
+        throw std::invalid_argument("Invalid green color");
+    }
+    if (curve.color_blue < 0 || curve.color_blue > 255) {
+        throw std::invalid_argument("Invalid blue color");
+    }
+    if (curve.coords.size() < 2) {
+        throw std::invalid_argument("Invalid curve size");
+    }
+    emit(TemporarySignal(curve));
 }
 
 //void MainWindow::resizeEvent(QResizeEvent *event)
