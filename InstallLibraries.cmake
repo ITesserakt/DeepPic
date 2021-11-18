@@ -8,8 +8,9 @@ FetchContent_Declare(
 )
 
 FetchContent_Declare(
-        ranges
-        GIT_REPOSITORY https://github.com/ericniebler/range-v3
+        googletest
+        GIT_REPOSITORY https://github.com/google/googletest
+        GIT_TAG e2239ee6043f73722e7aa812a459f54a28552929
 )
 
 FetchContent_Declare(
@@ -22,4 +23,4 @@ FetchContent_Declare(
         GIT_REPOSITORY https://github.com/ITesserakt/SmallVec
 )
 
-FetchContent_MakeAvailable(boost-cmake cppcoro ranges smallvec)
+FetchContent_MakeAvailable(boost-cmake cppcoro smallvec googletest)

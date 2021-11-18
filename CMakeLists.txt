@@ -9,6 +9,7 @@ if (NOT WIN32)
   add_compile_definitions(CPPCORO_USE_IO_RING)
 else ()
   set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 endif ()
 
 file(GLOB_RECURSE SOURCE_FILES project/src/*.cpp)

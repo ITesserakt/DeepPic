@@ -58,4 +58,5 @@ protected:
 };
 
 int main(int argc, char **argv) {
+    auto bus = CommandBus();
 }
