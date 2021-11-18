@@ -7,19 +7,13 @@
 
 #include "CommandBus.h"
 #include "LocalCommandExecutor.h"
-#include "command/Command.h"
-
-struct TestCommand : Command {
-    void execute() override {
-        throw std::string("test");
-    }
-};
+#include "HelloCommand.h"
 
 TEST(executors, executing_command_through_local_command_executor) {
     auto executor = LocalCommandExecutor();
-    auto cmd = TestCommand();
+    auto cmd = HelloCommand(5);
 
-    EXPECT_THROW(cppcoro::sync_wait(executor.execute(std::move(cmd))), std::string);
+    EXPECT_THROW(cppcoro::sync_wait(executor.execute(std::move(cmd))), std::runtime_error);
 }
 
 TEST(executors, executing_command_through_network_command_executor) {
@@ -29,9 +23,9 @@ TEST(executors, executing_command_through_network_command_executor) {
 
 TEST(executors, executing_command_through_command_bus) {
     auto bus = CommandBus();
-    auto cmd = TestCommand();
+    auto cmd = HelloCommand(5);
 
     bus.addExecutor<LocalCommandExecutor>();
 
-    EXPECT_THROW(cppcoro::sync_wait(bus.execute(std::move(cmd))), std::string);
+    EXPECT_THROW(cppcoro::sync_wait(bus.execute(std::move(cmd))), std::runtime_error);
 }

@@ -14,6 +14,11 @@ FetchContent_Declare(
 )
 
 FetchContent_Declare(
+        jsoncons
+        GIT_REPOSITORY https://github.com/danielaparker/jsoncons
+)
+
+FetchContent_Declare(
         cppcoro
         GIT_REPOSITORY https://github.com/arthurzam/cppcoro
 )
@@ -23,4 +28,4 @@ FetchContent_Declare(
         GIT_REPOSITORY https://github.com/ITesserakt/SmallVec
 )
 
-FetchContent_MakeAvailable(boost-cmake cppcoro smallvec googletest)
+FetchContent_MakeAvailable(boost-cmake cppcoro smallvec jsoncons googletest)

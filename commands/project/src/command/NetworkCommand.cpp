@@ -7,9 +7,11 @@
 BOOST_CLASS_EXPORT_IMPLEMENT(NetworkCommand)
 
 void NetworkCommand::rollback() {
-    auto rCommand = dynamic_cast<RCommand *>(command);
-    if (rCommand != nullptr)
+    auto rCommand = dynamic_cast<RCommand *>(command.get());
+    if (rCommand != nullptr) {
+        command.release();
         rCommand->rollback();
+    }
 }
 
 NetworkCommand::NetworkCommand(unsigned int clientId, Command *command)
@@ -19,6 +21,6 @@ void NetworkCommand::execute() {
     command->execute();
 }
 
-NetworkCommand::~NetworkCommand() {
-    delete command;
+constexpr const char *NetworkCommand::type() const {
+    return "NetworkCommand";
 }

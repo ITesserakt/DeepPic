@@ -11,7 +11,7 @@ NetworkCommand NetworkCommandExecutor::wrapCommand(Command &&command) {
     if (network == nullptr) {
         return {transporter->id(), &command};
     }
-    return *network;
+    return std::move(*network);
 }
 
 cppcoro::task<void> NetworkCommandExecutor::execute(Command &&cmd) {

@@ -4,9 +4,9 @@
 
 #include <gtest/gtest.h>
 
-#include "BoostSerializer.h"
+#include "JsonSerializer.h"
 
-using SerializerType = BoostSerializer;
+using SerializerType = JsonSerializer;
 
 struct Point {
     int x, y;
@@ -24,6 +24,8 @@ struct Point {
         return !(rhs == *this);
     }
 };
+
+JSONCONS_ALL_MEMBER_TRAITS(Point, x, y)
 
 TEST(serializing, serialize_simple_types) {
     auto serializer = SerializerType();

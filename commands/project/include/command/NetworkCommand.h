@@ -20,9 +20,15 @@ private:
         ar &boost::serialization::base_object<RCommand>(*this) & BOOST_SERIALIZATION_NVP(clientId) & BOOST_SERIALIZATION_NVP(command);
     }
 
+    NetworkCommand(unsigned int clientId, std::unique_ptr<Command> command)
+        : clientId(clientId), command(std::move(command)) {}
+    [[nodiscard]] auto getClientId() const { return clientId; }
+    [[nodiscard]] auto &getCommand() const { return command; }
+    JSONCONS_TYPE_TRAITS_FRIEND;
+
 protected:
     unsigned int clientId;
-    Command *command;
+    std::unique_ptr<Command> command;
 
 public:
     void execute() override;
@@ -31,11 +37,11 @@ public:
 
     template <typename T>
     requires std::is_base_of_v<Command, T>
-    [[nodiscard]] T &inner() const { return *dynamic_cast<T *>(command); }
+    [[nodiscard]] T &inner() const { return *dynamic_cast<T *>(command.get()); }
 
     void rollback() override;
 
-    ~NetworkCommand();
+    [[nodiscard]] constexpr const char *type() const override;
 };
 
 namespace boost::serialization {
@@ -51,3 +57,8 @@ namespace boost::serialization {
 }// namespace boost::serialization
 
 BOOST_CLASS_EXPORT_KEY(NetworkCommand)
+JSONCONS_ALL_CTOR_GETTER_NAME_TRAITS(
+        NetworkCommand,
+        (type, "type", JSONCONS_RDONLY, [](const char *type) { return type == std::string("NetworkCommand"); }),
+        (getClientId, "client_id"),
+        (getCommand, "command"))
