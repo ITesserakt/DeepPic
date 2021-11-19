@@ -4,8 +4,6 @@
 
 #include "command/NetworkCommand.h"
 
-BOOST_CLASS_EXPORT_IMPLEMENT(NetworkCommand)
-
 void NetworkCommand::rollback() {
     auto rCommand = dynamic_cast<RCommand *>(command.get());
     if (rCommand != nullptr) {
@@ -19,8 +17,4 @@ NetworkCommand::NetworkCommand(unsigned int clientId, Command *command)
 
 void NetworkCommand::execute() {
     command->execute();
-}
-
-constexpr const char *NetworkCommand::type() const {
-    return "NetworkCommand";
 }

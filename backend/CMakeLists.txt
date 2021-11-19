@@ -5,7 +5,6 @@ add_library(sha256 SHARED project/src/SHA256.c project/include/SHA256.h)
 add_library(backend ${SOURCE_FILES})
 
 target_link_libraries(backend INTERFACE sha256
-        PUBLIC Boost::serialization
         PUBLIC jsoncons
         PUBLIC cppcoro)
 target_include_directories(backend PRIVATE project/include)

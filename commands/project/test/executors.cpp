@@ -17,8 +17,9 @@ TEST(executors, executing_command_through_local_command_executor) {
 }
 
 TEST(executors, executing_command_through_network_command_executor) {
-    // create network command executor, server and client
-    // expect that client NCE accepts command and throws an exception
+    // TODO
+    //  create network command executor, server and client
+    //  expect that client NCE accepts command and throws an exception
 }
 
 TEST(executors, executing_command_through_command_bus) {

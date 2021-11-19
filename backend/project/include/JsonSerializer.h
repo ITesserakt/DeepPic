@@ -4,17 +4,10 @@
 
 #pragma once
 
+#include "utility"
 #include <jsoncons/json.hpp>
 
 #include "Serializer.h"
-
-/*
- * Basic schema for serialization:
- * {
- *      type: <type>,
- *      data: <object>
- * }
- */
 
 struct JsonSerializer {
     template <typename T, typename O>
@@ -28,5 +21,29 @@ struct JsonSerializer {
         return jsoncons::decode_json<T>(is);
     }
 };
+
+namespace jsoncons::polymorphic {
+    template <typename T>
+    struct TypeableGetter {
+        constexpr static auto type() { return typeid(T).hash_code(); }
+
+        constexpr static auto typeAccessor() { return type(); }
+    };
+
+    template <typename T>
+    struct TypeableMember {
+        static const unsigned long type;
+
+        static unsigned long typeAccessor() { return type; }
+    };
+
+    template <typename T>
+    const unsigned long TypeableMember<T>::type = typeid(T).hash_code();
+}// namespace jsoncons::polymorphic
+
+#define JSONCONS_POLYMORPHIC_TYPE_VAL_WITH_NAME(T, typeKeyName) (type, #typeKeyName, JSONCONS_RDONLY, [](auto type) noexcept { \
+    return type == T::typeAccessor();                                                                                          \
+})
+#define JSONCONS_POLYMORPHIC_TYPE_VAL(T) JSONCONS_POLYMORPHIC_TYPE_VAL_WITH_NAME(T, type)
 
 static_assert(Serializer<JsonSerializer, std::ostream, std::istream>);

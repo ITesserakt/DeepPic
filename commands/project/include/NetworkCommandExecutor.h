@@ -8,12 +8,12 @@
 
 #include "CommandExecutor.h"
 #include "Transporter.h"
-#include "BoostSerializer.h"
 #include "command/NetworkCommand.h"
+#include "JsonSerializer.h"
 
 class NetworkCommandExecutor : public CommandExecutor {
 public:
-    using Serializer = BoostSerializer;
+    using Serializer = JsonSerializer;
     using TransporterType = Transporter<std::istringstream, Serializer>;
 
 private:

@@ -4,37 +4,17 @@
 
 #pragma once
 
-#include <boost/serialization/base_object.hpp>
-#include <boost/serialization/export.hpp>
 #include <jsoncons/json.hpp>
 
-struct Typeable {
-    [[nodiscard]] constexpr virtual const char *type() const = 0;
-};
+#include "JsonSerializer.h"
 
-class Command : public Typeable {
-private:
-    friend class boost::serialization::access;
-
-    template <typename Archive>
-    void serialize(Archive &ar, const unsigned int) {
-    }
-
-public:
+struct Command {
     virtual void execute() = 0;
 
     virtual ~Command() = default;
 };
 
-class RCommand : public Command {
-private:
-    friend class boost::serialization::access;
-
-    void serialize(auto &ar, const unsigned int) {
-        ar &boost::serialization::base_object<Command>(*this);
-    }
-
-public:
+struct RCommand : Command {
     virtual void rollback() = 0;
 };
 
@@ -42,9 +22,6 @@ template <typename T>
 concept Rollback = requires(T &a) {
     a.rollback();
 };
-
-BOOST_CLASS_EXPORT_KEY(Command);
-BOOST_CLASS_EXPORT_KEY(RCommand);
 
 namespace jsoncons {
     template <typename Json>
