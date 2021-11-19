@@ -6,7 +6,8 @@
 #include <memory>
 
 #include "JsonSerializer.h"
-#include "JsonconsDefinitions.h"
+#include "HelloCommand.h"
+#include "command/NetworkCommand.h"
 
 using SerializerType = JsonSerializer;
 

@@ -21,6 +21,8 @@ private:
     unsigned int clientId;
     std::unique_ptr<Command> command;
 
+    JSONCONS_POLYMORPHIC_INIT_DEFINES(NetworkCommand);
+
 public:
     void execute() override;
 
