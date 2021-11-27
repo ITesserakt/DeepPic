@@ -1,5 +1,4 @@
 #include "PaintScene.h"
-#include <iostream>
 
 void PaintScene::mousePressEvent(QGraphicsSceneMouseEvent *event) {
     if (is_brush) {
@@ -67,9 +66,9 @@ void PaintScene::SetBlueSlot(int value) {
     assert(value < 256 && value >= 0);
     brush_color.setBlue(value);
 }
-void PaintScene::SetBrush(qreal size, int red, int green, int blue, int opacity) {
-    brush_size = size;
-    brush_color.setRgb(red, green, blue, opacity);
+void PaintScene::SetBrush(qreal brushSize, const QColor& brushColor) {
+    brush_size = brushSize;
+    brush_color = brushColor;
 }
 void PaintScene::PaintCurveSlot(const Curve &curve) {
     assert(curve.coords.size() > 1);

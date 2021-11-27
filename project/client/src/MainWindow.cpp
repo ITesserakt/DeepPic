@@ -16,14 +16,20 @@
 
 #include <stdexcept>
 
+////
+#include <QImage>
+#include <QPixmap>
+////
+
 #include <iostream>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent) {
 
-    scene = new PaintScene(this);       // Инициализируем графическую сцену
+    scene = new PaintScene(this);
     qGraphicsView = new QGraphicsView;
     qGraphicsView->setScene(scene);
+
     setCentralWidget(qGraphicsView);
 
     // MenuBar
@@ -51,8 +57,8 @@ MainWindow::MainWindow(QWidget *parent) :
     help->addAction(help_help);
 
     // ToolBars
-//    parametersPanel = new ParametersPanel;
-//    addToolBar(parametersPanel);
+    parametersPanel = new ParametersPanel(this);
+    addToolBar(parametersPanel);
     parameters_panel = new QToolBar;
     addToolBar(parameters_panel);
     parameters_panel->setFixedHeight(40);
@@ -64,7 +70,7 @@ MainWindow::MainWindow(QWidget *parent) :
     toolsPanel = new ToolsPanel;
     addToolBar(Qt::LeftToolBarArea, toolsPanel);
 
-    connect(toolsPanel->actions()[0], &QAction::triggered, this, &MainWindow::slotBrush);
+    connect(toolsPanel, &ToolsPanel::BrushTriggered, this, &MainWindow::slotBrush);
     connect(this, &MainWindow::TemporarySignal, scene, &PaintScene::PaintCurveSlot);
     //connect(scene, &PaintScene::PushCurve, this, &MainWindow::TemporaryWriterSlot);
 
@@ -84,65 +90,27 @@ void MainWindow::slotTimer() {
     scene->setSceneRect(0, 0, qGraphicsView->width() - 20, qGraphicsView->height() - 20);
 }
 
-void MainWindow::slotBrush() {
+void MainWindow::slotBrush(qreal brushSize, const QColor& brushColor) {
 
     if (scene->BrushStatus()) {
-        parameters_panel->clear();
-        //parametersPanel->clear();
+        parametersPanel->clear();
     } else {
-        //parametersPanel->setBrush();
+        scene->SetBrush(brushSize, brushColor);
+        parametersPanel->setBrush(brushSize, brushColor);
+        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushSizeChanged), scene, &PaintScene::SetBrushSize);
+        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushSizeChanged), toolsPanel, &ToolsPanel::SetBrushSizeSlot);
 
-        scene->SetBrush(30, 0, 180, 40, 255);
-        scene->setSceneRect(0, 0, qGraphicsView->width() - 20, qGraphicsView->height() - 20);
+        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushRedChanged), scene, &PaintScene::SetRedSlot);
+        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushRedChanged), toolsPanel, &ToolsPanel::SetBrushRedSlot);
 
-        auto *dummy = new QWidget();
-        dummy->setFixedWidth(40);
-        parameters_panel->addWidget(dummy);
+        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushGreenChanged), scene, &PaintScene::SetGreenSlot);
+        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushGreenChanged), toolsPanel, &ToolsPanel::SetBrushGreenSlot);
 
-        auto *size_changer = new Changer("Size", 30, 500, this);
-        connect(size_changer, QOverload<int>::of(&Changer::valueChanged), scene, &PaintScene::SetBrushSize);
-        parameters_panel->addWidget(size_changer);
-        parameters_panel->addSeparator();
+        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushBlueChanged), scene, &PaintScene::SetBlueSlot);
+        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushBlueChanged), toolsPanel, &ToolsPanel::SetBrushBlueSlot);
 
-
-        auto *palette = new Palette;
-        palette->SetColor(0, 180, 40, 255);
-
-        auto *opacity_changer = new Changer("Opacity", 255, 255, this);
-        connect(opacity_changer, QOverload<int>::of(&Changer::valueChanged), scene,
-                (&PaintScene::SetTransparencySlot));
-
-
-        auto *red_changer = new Changer("Red", 0, 255, this);
-        connect(red_changer, QOverload<int>::of(&Changer::valueChanged), scene,
-                (&PaintScene::SetRedSlot));
-        connect(red_changer, QOverload<int>::of(&Changer::valueChanged), palette,
-                (&Palette::SetRed));
-        parameters_panel->addWidget(red_changer);
-
-        auto *green_changer = new Changer("Green", 180, 255, this);
-        connect(green_changer, QOverload<int>::of(&Changer::valueChanged), scene,
-                (&PaintScene::SetGreenSlot));
-        connect(green_changer, QOverload<int>::of(&Changer::valueChanged), palette,
-                (&Palette::SetGreen));
-        parameters_panel->addWidget(green_changer);
-
-        auto *blue_changer = new Changer("Blue", 40, 255, this);
-        connect(blue_changer, QOverload<int>::of(&Changer::valueChanged), scene,
-                (&PaintScene::SetBlueSlot));
-        connect(blue_changer, QOverload<int>::of(&Changer::valueChanged), palette,
-                (&Palette::SetBlue));
-        parameters_panel->addWidget(blue_changer);
-
-
-//        Palette palette;
-        parameters_panel->addWidget(palette);
-        parameters_panel->addSeparator();
-
-        parameters_panel->addWidget(opacity_changer);
-
-
-        parameters_panel->setStyleSheet(QString("QToolBar {spacing: %1}").arg(10));
+        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushOpacityChanged), scene, &PaintScene::SetTransparencySlot);
+        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushOpacityChanged), toolsPanel, &ToolsPanel::SetBrushOpacitySlot);
     }
     scene->ChangeBrushStatus();
 }

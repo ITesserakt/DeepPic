@@ -36,7 +36,7 @@ private:
     long temporary_read_position = 0;
 
 private slots:
-    void slotBrush();
+    void slotBrush(qreal brushSize = 10, const QColor& brushColor = Qt::red);
     void slotTimer();
 
 public:

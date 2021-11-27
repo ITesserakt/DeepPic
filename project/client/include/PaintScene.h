@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QGraphicsScene>
+#include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
 #include <QTimer>
 #include <QDebug>
@@ -32,7 +33,7 @@ public:
     void ChangeBrushStatus();
     bool BrushStatus();
     void SetBrushSize(qreal brush_size = 10);
-    void SetBrush(qreal size, int red, int green, int blue, int opacity);
+    void SetBrush(qreal brushSize = 10, const QColor& brushColor = Qt::red);
 
 signals:
     void PushCurve(const Curve& curve);
