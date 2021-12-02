@@ -27,16 +27,20 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent) {
 
     scene = new PaintScene(this);
-    qGraphicsView = new QGraphicsView;
-    qGraphicsView->setScene(scene);
+    canvas = new Canvas;
+    canvas->setScene(scene);
 
-    setCentralWidget(qGraphicsView);
+    setCentralWidget(canvas);
 
     // MenuBar
     auto *file_open = new QAction("&Open", this);
+    connect(file_open, &QAction::triggered, canvas, &Canvas::openImageSlot);
     auto *file_close = new QAction("&Close", this);
+    connect(file_close, &QAction::triggered, canvas, &Canvas::closeImageSlot);
     auto *file_save = new QAction("&Save", this);
+    connect(file_save, &QAction::triggered, canvas, &Canvas::saveImageSlot);
     auto *file_save_as = new QAction("&Save as", this);
+    connect(file_save_as, &QAction::triggered, canvas, &Canvas::saveAsImageSlot);
     QMenu *file;
     file = menuBar()->addMenu("File");
     file->addAction(file_open);
@@ -87,7 +91,7 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::slotTimer() {
-    scene->setSceneRect(0, 0, qGraphicsView->width() - 20, qGraphicsView->height() - 20);
+    //scene->setSceneRect(0, 0, qGraphicsView->width() - 20, qGraphicsView->height() - 20);
 }
 
 void MainWindow::slotBrush(qreal brushSize, const QColor& brushColor) {

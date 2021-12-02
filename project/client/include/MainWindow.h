@@ -8,6 +8,7 @@
 #include "PaintScene.h"
 #include "ToolsPanel.h"
 #include "ParametersPanel.h"
+#include "Canvas.h"
 
 class MainWindow : public QMainWindow
 {
@@ -22,7 +23,7 @@ signals:
 
 private:
     PaintScene *scene;
-    QGraphicsView* qGraphicsView;
+    Canvas* canvas;
 
     QToolBar *parameters_panel;
 
@@ -38,6 +39,7 @@ private:
 private slots:
     void slotBrush(qreal brushSize = 10, const QColor& brushColor = Qt::red);
     void slotTimer();
+
 
 public:
     void executeBrush(const Curve& curve);

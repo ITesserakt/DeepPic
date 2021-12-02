@@ -1,4 +1,6 @@
 #include "PaintScene.h"
+#include <QPainter>
+#include <QGraphicsPixmapItem>
 
 void PaintScene::mousePressEvent(QGraphicsSceneMouseEvent *event) {
     if (is_brush) {
