@@ -1,10 +1,11 @@
 #include <iostream>
 
-#include "SharedDocument.h"
+#include "SharedDocumentServer.h"
+#include "MainServer.h"
 
-int SharedDocument::start_since_port = 5555;
+int SharedDocumentServer::start_since_port = 6070;
 
 int main() {
-    SharedDocument document;
-    document.startShared();
+    MainServer server(8080, 4);
+    server.runServer();
 }
