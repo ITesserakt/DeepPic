@@ -2,6 +2,10 @@
 // Created by tesserakt on 30.10.2021.
 //
 
-int main() {
-    return 0;
+#include "CommandBus.h"
+#include "LocalCommandExecutor.h"
+#include "NetworkCommandExecutor.h"
+
+int main(int argc, char **argv) {
+    auto bus = CommandBus();
 }
