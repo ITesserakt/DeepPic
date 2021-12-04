@@ -5,12 +5,15 @@
 #include "Connection.h"
 #include "Settings.h"
 
-class Server : public std::enable_shared_from_this<Server> {
+struct ServerCallbacks {
+    std::function<void(std::shared_ptr<Connection>)> onAcceptCb_;
+    std::function<void(std::shared_ptr<Connection>, std::string &&)> onReadCb_;
+    std::function<void(std::shared_ptr<Connection>)> onDeleteCb_;
+};
+
+class Server {
 public:
-    Server(int port, std::function<void(std::shared_ptr<Connection>)> onAcceptCb,
-           std::function<void(std::shared_ptr<Connection>, std::string &&)> onReadCb,
-           boost::asio::io_context &service,
-           std::function<void(std::shared_ptr<Connection>)> = {});
+    Server(int port, boost::asio::io_context &service, ServerCallbacks &&callbacks);
 
     void runServer();
 
@@ -23,9 +26,9 @@ private:
 
     boost::asio::ip::tcp::acceptor acceptor_;
     int port_;
-    std::function<void(std::shared_ptr<Connection>)> onAcceptCb_;
-    std::function<void(std::shared_ptr<Connection>, std::string &&)> onReadCb_;
-    std::function<void(std::shared_ptr<Connection>)> onDeleteCb_;
+
+    ServerCallbacks callbacks_;
+
     char readBuf_[BUFFER_LENGTH];
     char sendBuf_[BUFFER_LENGTH];
 };

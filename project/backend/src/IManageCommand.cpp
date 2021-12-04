@@ -30,11 +30,43 @@ IManageCommand::~IManageCommand() {
 
 bool GetDocument::do_command(std::string &command, std::shared_ptr<Connection> author) {
     std::cerr << "we are in get document" << std::endl;
+    // TODO: здесь сейчас вместо реального парсинга команды заглушки. реальная команда будет приходить в json'е, поэтому поменять
+    //  потом на него
+    if (command == "get document") {
+        clientsToGetDocument_.push_back(author);
+        getDocumentFromClient();
+    } else if (command == "document received") {
+        sendDocumentToNewClients(std::move(command));
+    }
+
     return true;
+}
+
+void GetDocument::getDocumentFromClient() {
+    std::string give_me_document = "give me document";
+    (*(connections_->begin()))->write(give_me_document,
+                                      [this](std::shared_ptr<Connection> connection) { this->handleGetDocumentFromClient(connection); });
+}
+
+void GetDocument::handleGetDocumentFromClient(std::shared_ptr<Connection> &connection) {
+    if (connection == nullptr) {
+        getDocumentFromClient();
+    }
+}
+
+void GetDocument::sendDocumentToNewClients(std::string &&document) {
+    for (auto &client : clientsToGetDocument_) {
+        client->write(document);
+    }
 }
 
 bool SharingCommand::do_command(std::string &command, std::shared_ptr<Connection> author) {
     std::cerr << "we are in sharing command" << std::endl;
+    for (auto &connection: *connections_) {
+        if (author != connection) {
+            connection->write(command);
+        }
+    }
 
     return true;
 }
@@ -45,7 +77,7 @@ bool CreateNewDocumentCommand::do_command(std::string &command, std::shared_ptr<
     std::string response = "nu chto tebe skazatt pro sahalin\r\n";
     author->write(response);
 
-    std::shared_ptr <SharedDocumentServer> shared_document(
+    std::shared_ptr<SharedDocumentServer> shared_document(
             new SharedDocumentServer(static_cast<boost::asio::io_context &>(author->getSock().get_executor().context())));
     sharedDocuments_.push_back(shared_document);
     shared_document->startShared();

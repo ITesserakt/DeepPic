@@ -63,6 +63,9 @@ void Connection::writeHandler(const boost::system::error_code &err, std::size_t 
         if (onDeleteCb_) {
             onDeleteCb_(shared_from_this());
         }
+        if (onWriteCb) {
+            onWriteCb(nullptr);
+        }
         return;
     }
     std::cerr << "we are on Connection::writeHandler" << std::endl;
@@ -79,3 +82,4 @@ void Connection::stop() {
 boost::asio::ip::tcp::socket &Connection::getSock() {
     return sock_;
 }
+

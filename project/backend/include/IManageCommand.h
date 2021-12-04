@@ -27,9 +27,10 @@ public:
 protected:
     IManageCommand() : letter_(NULL) {}
 
+    std::vector<std::shared_ptr<Connection>> *connections_ = nullptr;
+
 private:
     IManageCommand *letter_;
-    std::optional<std::vector<std::shared_ptr<Connection>> *> connections_;
 };
 
 class GetDocument : public IManageCommand {
@@ -47,14 +48,12 @@ private:
 
     GetDocument() = default;
 
-    /*
+
     void getDocumentFromClient();
 
-    void handleGetDocumentFromClient(const boost::system::error_code &err, std::size_t bytes_transferred);
+    void handleGetDocumentFromClient(std::shared_ptr<Connection> &connection);
 
-    void sendDocumentToNewClients(std::string &document);
-*/
-    char document_[MAX_DOCUMENT_LENGTH];
+    void sendDocumentToNewClients(std::string &&document);
 
     std::vector<std::shared_ptr<Connection>> clientsToGetDocument_;
 };

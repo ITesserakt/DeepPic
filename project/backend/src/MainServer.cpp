@@ -4,15 +4,17 @@
 #include <utility>
 #include <thread>
 
-MainServer::MainServer(int port, int countThreads) : service_(), server_(port,
-                                                                         [this](std::shared_ptr<Connection> connection) {
-                                                                             this->handleAcceptConnection(std::move(connection));
-                                                                         },
-                                                                         [this](std::shared_ptr<Connection> connection,
-                                                                                std::string &&command) {
-                                                                             this->onReadCb(std::move(connection), std::move(command));
-                                                                         },
-                                                                         service_),
+MainServer::MainServer(int port, int countThreads) : service_(), server_(port, service_,
+                                                                         ServerCallbacks{
+                                                                                 [this](std::shared_ptr<Connection> connection) {
+                                                                                     this->handleAcceptConnection(std::move(connection));
+                                                                                 },
+                                                                                 [this](std::shared_ptr<Connection> connection,
+                                                                                        std::string &&command) {
+                                                                                     this->onReadCb(std::move(connection),
+                                                                                                    std::move(command));
+                                                                                 }, {}}
+),
                                                      countThreads_(countThreads) {
     createNewDocumentCommand_ = new IManageCommand(CREATE_DOCUMENT);
 }

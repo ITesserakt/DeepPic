@@ -6,16 +6,9 @@
 #include "Server.h"
 
 
-Server::Server(int port, std::function<void(std::shared_ptr<Connection>)> onAcceptCb,
-               std::function<void(std::shared_ptr<Connection>, std::string &&)> onReadCb,
-               boost::asio::io_context &service,
-               std::function<void(std::shared_ptr<Connection>)> onDeleteCb) : acceptor_(service),
-                                                                              port_(port),
-                                                                              onAcceptCb_(std::move(
-                                                                                      onAcceptCb)),
-                                                                              onReadCb_(std::move(
-                                                                                      onReadCb)),
-                                                                              onDeleteCb_(std::move(onDeleteCb)) {
+Server::Server(int port, boost::asio::io_context &service, ServerCallbacks &&callbacks) : acceptor_(service),
+                                                                                          port_(port),
+                                                                                          callbacks_(std::move(callbacks)) {
 
 }
 
@@ -36,7 +29,7 @@ int Server::getPort() {
 
 void Server::startAcceptConnections() {
     std::shared_ptr<Connection> connection(
-            new Connection(static_cast<boost::asio::io_context &>(acceptor_.get_executor().context()), onReadCb_));
+            new Connection(static_cast<boost::asio::io_context &>(acceptor_.get_executor().context()), callbacks_.onReadCb_));
     acceptor_.async_accept(connection->getSock(), boost::bind(&Server::handleAcceptConnection, this,
                                                               connection, boost::asio::placeholders::error));
     std::cerr << "start accept connections" << std::endl;
@@ -47,7 +40,9 @@ void Server::handleAcceptConnection(std::shared_ptr<Connection> connection, cons
         startAcceptConnections();
     }
 
-    onAcceptCb_(connection);
+    callbacks_.onAcceptCb_(connection);
     startAcceptConnections();
 }
+
+
 

@@ -6,14 +6,21 @@
 #include "IManageCommand.h"
 #include <boost/log/common.hpp>
 
-SharedDocumentServer::SharedDocumentServer(boost::asio::io_context &service) : server_(start_since_port++, [this](std::shared_ptr<Connection> connection) {
-                                                           this->handleAcceptConnection(std::move(connection));
-                                                       }, [this](std::shared_ptr<Connection> author, std::string &&command)
-                                                       { this->onReadCb(std::move(author), std::move(command)); },
-                                                       service,
-                                                       [this](std::shared_ptr<Connection> connection) {
-                                                           this->onDeleteConnection(std::move(connection));
-                                                       }) {
+SharedDocumentServer::SharedDocumentServer(boost::asio::io_context &service) : server_(start_since_port++, service,
+                                                                                       ServerCallbacks{
+                                                                                               [this](std::shared_ptr<Connection> connection) {
+                                                                                                   this->handleAcceptConnection(
+                                                                                                           std::move(connection));
+                                                                                               },
+                                                                                               [this](std::shared_ptr<Connection> author,
+                                                                                                      std::string &&command) {
+                                                                                                   this->onReadCb(std::move(author),
+                                                                                                                  std::move(command));
+                                                                                               },
+                                                                                               [this](std::shared_ptr<Connection> connection) {
+                                                                                                   this->onDeleteConnection(
+                                                                                                           std::move(connection));
+                                                                                               }}) {
 
     generateAuthToken();
     sharingCommand_ = new IManageCommand(SHARING_COMMAND, &connections_);
@@ -37,7 +44,12 @@ bool SharedDocumentServer::checkAuthToken(std::string &token) {
 
 void SharedDocumentServer::onReadCb(std::shared_ptr<Connection> author, std::string &&command) {
     std::cout << "We are in onReadCb" << std::endl;
-    // TODO: возможно переделать логику обработки команд на CommandBus
+    // TODO: тоже стоят заглушки вместо парсинга команд. Переделать на парсинг json'а
+    if (command == "sharind command") {
+        sharingCommand_->do_command(command, author);
+    } else if (command == "get document" || command == "document received") {
+        getDocument_->do_command(command, author);
+    }
 }
 
 
