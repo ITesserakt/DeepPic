@@ -48,7 +48,6 @@ private:
 
     GetDocument() = default;
 
-
     void getDocumentFromClient();
 
     void handleGetDocumentFromClient(std::shared_ptr<Connection> &connection);
