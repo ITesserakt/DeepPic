@@ -26,6 +26,11 @@ void Connection::read() {
 }
 
 void Connection::write(std::string &command, std::function<void(std::shared_ptr<Connection>)> onWriteCb) {
+    // функция write может быть вызвана из разных потоков, поэтому блокируем ее до тех пор, пока другой поток не закончит запись
+    std::unique_lock<std::mutex> ulock(writeMutex_);
+    writeCv_.wait(ulock, [this](){ return bool(canWrite_);});
+    canWrite_ = false;
+
     for (int i = 0; i < command.length(); ++i) {
         sendBuf_[i] = command[i];
     }
@@ -73,6 +78,9 @@ void Connection::writeHandler(const boost::system::error_code &err, std::size_t 
     if (onWriteCb) {
         onWriteCb(shared_from_this());
     }
+
+    canWrite_ = true;
+    writeCv_.notify_one();
 }
 
 void Connection::stop() {

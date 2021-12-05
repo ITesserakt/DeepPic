@@ -1,6 +1,9 @@
 #pragma once
 
 #include <boost/asio.hpp>
+#include <mutex>
+#include <condition_variable>
+#include <atomic>
 
 #include "Settings.h"
 
@@ -33,4 +36,8 @@ private:
     std::function<void(std::shared_ptr<Connection>)> onDeleteCb_;
     char readBuf_[BUFFER_LENGTH];
     char sendBuf_[BUFFER_LENGTH];
+
+    std::mutex writeMutex_;
+    std::condition_variable writeCv_;
+    std::atomic<bool> canWrite_ = true;
 };

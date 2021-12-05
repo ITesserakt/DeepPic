@@ -62,7 +62,7 @@ void SharedDocumentServer::onDeleteConnection(std::shared_ptr<Connection> connec
         pos++;
     }
     try {
-        std::cerr << "delete client" << std::endl;
+        std::cerr << "delete ServerConnection" << std::endl;
         (*pos)->stop();
         connections_.erase(pos);
     } catch (...) {
