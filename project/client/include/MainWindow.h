@@ -42,5 +42,6 @@ private slots:
 
 
 public:
+    void execute(std::string&& message);
     void executeBrush(const Curve& curve);
 };
