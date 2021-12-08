@@ -4,6 +4,7 @@
 
 #include "SharedDocumentServer.h"
 #include "IManageCommand.h"
+#include "CommandConstructor.h"
 #include <boost/log/common.hpp>
 
 SharedDocumentServer::SharedDocumentServer(boost::asio::io_context &service) : server_(start_since_port++, service,
@@ -23,8 +24,7 @@ SharedDocumentServer::SharedDocumentServer(boost::asio::io_context &service) : s
                                                                                                }}) {
 
     generateAuthToken();
-    sharingCommand_ = new IManageCommand(SHARING_COMMAND, &connections_);
-    getDocument_ = new IManageCommand(GET_DOCUMENT, &connections_);
+    documentCommandBus_ = new DocumentCommandBus(&connections_);
 }
 
 void SharedDocumentServer::generateAuthToken() {
@@ -44,11 +44,22 @@ bool SharedDocumentServer::checkAuthToken(std::string &token) {
 
 void SharedDocumentServer::onReadCb(std::shared_ptr<Connection> author, std::string &&command) {
     std::cout << "We are in onReadCb" << std::endl;
-    // TODO: тоже стоят заглушки вместо парсинга команд. Переделать на парсинг json'а
-    if (command == "sharind command") {
-        sharingCommand_->do_command(command, author);
-    } else if (command == "get document" || command == "document received") {
-        getDocument_->do_command(command, author);
+    std::cout << command << std::endl;
+    documentCommandBus_->do_command(std::move(command), author);
+    auto command_parse = json::parse(command);
+    if (command_parse["target"] == "auth") {
+        if (command_parse["auth_token"] == getAuthToken()) {
+            std::string response_dump = CommandConstructor::authServer("OK").dump();
+            author->setAuth(true);
+            author->write(response_dump);
+        } else {
+            std::string response_dump = CommandConstructor::authServer("FAIL").dump();
+            author->setAuth(false);
+            // если пользователь послал не верный аутентификационный токен - удаляем его
+            author->write(response_dump, [](std::shared_ptr<Connection> connection) { connection->stop(); });
+        }
+    } else {
+        documentCommandBus_->do_command(std::move(command), author);
     }
 }
 
@@ -79,8 +90,7 @@ std::string SharedDocumentServer::getAuthToken() {
 }
 
 SharedDocumentServer::~SharedDocumentServer() {
-    delete getDocument_;
-    delete sharingCommand_;
+    delete documentCommandBus_;
 }
 
 void SharedDocumentServer::handleAcceptConnection(std::shared_ptr<Connection> connection) {

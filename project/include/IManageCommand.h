@@ -1,8 +1,12 @@
 #pragma once
 
+#include <nlohmann/json.hpp>
+
 #include "Settings.h"
 #include "SharedDocumentServer.h"
 #include "Connection.h"
+
+using json = nlohmann::json;
 
 typedef enum {
     SHARING_COMMAND = 0x01,
@@ -20,7 +24,7 @@ public:
 
     IManageCommand &operator=(IManageCommand &) = delete;
 
-    virtual bool do_command(std::string &command, std::shared_ptr<Connection> author);
+    virtual bool do_command(json &command, std::shared_ptr<Connection> author);
 
     ~IManageCommand();
 
@@ -35,7 +39,7 @@ private:
 
 class GetDocument : public IManageCommand {
 public:
-    virtual bool do_command(std::string &command, std::shared_ptr<Connection> author) override;
+    virtual bool do_command(json &command, std::shared_ptr<Connection> author) override;
 
     GetDocument(const GetDocument &) = delete;
 
@@ -59,7 +63,7 @@ private:
 
 class SharingCommand : public IManageCommand {
 public:
-    virtual bool do_command(std::string &command, std::shared_ptr<Connection> author) override;
+    virtual bool do_command(json &command, std::shared_ptr<Connection> author) override;
 
     SharingCommand(const SharingCommand &) = delete;
 
@@ -75,7 +79,7 @@ private:
 
 class CreateNewDocumentCommand : public IManageCommand {
 public:
-    virtual bool do_command(std::string &command, std::shared_ptr<Connection> author) override;
+    virtual bool do_command(json &command, std::shared_ptr<Connection> author) override;
 
     ~CreateNewDocumentCommand();
 
@@ -85,4 +89,13 @@ private:
     CreateNewDocumentCommand() = default;
 
     std::vector<std::shared_ptr<SharedDocumentServer>> sharedDocuments_;
+};
+
+class DocumentCommandBus {
+public:
+    explicit DocumentCommandBus(std::vector<std::shared_ptr<Connection>> *connection);
+    bool do_command(std::string &&command, std::shared_ptr<Connection> author);
+private:
+    IManageCommand sharingCommand_;
+    IManageCommand getDocumentCommand_;
 };

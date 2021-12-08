@@ -21,6 +21,12 @@ public:
 
     void stop();
 
+    void setAuth(bool value);
+
+    bool getAuth();
+
+    ~Connection();
+
 private:
     void read();
 
@@ -40,4 +46,6 @@ private:
     std::mutex writeMutex_;
     std::condition_variable writeCv_;
     std::atomic<bool> canWrite_ = true;
+
+    bool isAuth_ = false;
 };

@@ -8,7 +8,7 @@
 #include "Connection.h"
 #include "Settings.h"
 
-class IManageCommand;
+class DocumentCommandBus;
 
 class SharedDocumentServer {
 public:
@@ -40,6 +40,5 @@ private:
     std::string authToken_;
     std::vector<std::shared_ptr<Connection>> connections_;
 
-    IManageCommand *sharingCommand_;
-    IManageCommand *getDocument_;
+    DocumentCommandBus *documentCommandBus_;
 };

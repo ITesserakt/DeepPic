@@ -1,8 +1,12 @@
 #include "MainServer.h"
 #include "IManageCommand.h"
 
+#include <iostream>
 #include <utility>
 #include <thread>
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 
 MainServer::MainServer(int port, int countThreads) : service_(), server_(port, service_,
                                                                          ServerCallbacks{
@@ -40,5 +44,8 @@ void MainServer::handleAcceptConnection(std::shared_ptr<Connection> connection) 
 }
 
 void MainServer::onReadCb(std::shared_ptr<Connection> connection, std::string &&command) {
-    createNewDocumentCommand_->do_command(command, std::move(connection));
+    auto command_parse = json::parse(command);
+    if (command_parse["target"] == "sharing_document") {
+        createNewDocumentCommand_->do_command(command_parse, std::move(connection));
+    }
 }
