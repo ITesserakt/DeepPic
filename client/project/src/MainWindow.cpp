@@ -2,6 +2,9 @@
 #include "QGraphicsView"
 #include "Palette.h"
 #include "Changer.h"
+#include "command/NetworkCommand.h"
+#include "Commands.h"
+#include "cppcoro/schedule_on.hpp"
 
 #include <QAction>
 #include <QToolBar>
@@ -23,10 +26,7 @@
 
 #include <iostream>
 
-MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent) {
-
-    scene = new PaintScene(this);
+MainWindow::MainWindow(PaintScene &scene_) : QMainWindow(), scene(&scene_) {
     canvas = new Canvas;
     canvas->setScene(scene);
 
@@ -88,15 +88,11 @@ MainWindow::MainWindow(QWidget *parent) :
     // TODO: client
 }
 
-MainWindow::~MainWindow() {
-}
-
 void MainWindow::slotTimer() {
     //scene->setSceneRect(0, 0, qGraphicsView->width() - 20, qGraphicsView->height() - 20);
 }
 
 void MainWindow::slotBrush(qreal brushSize, const QColor& brushColor) {
-
     if (scene->BrushStatus()) {
         parametersPanel->clear();
     } else {
@@ -119,31 +115,3 @@ void MainWindow::slotBrush(qreal brushSize, const QColor& brushColor) {
     }
     scene->ChangeBrushStatus();
 }
-
-void MainWindow::executeBrush(const Curve& curve) {
-    if (curve.brush_size < 0) {
-        throw std::invalid_argument("Invalid size");
-    }
-    if (curve.color_red < 0 || curve.color_red > 255) {
-        throw std::invalid_argument("Invalid red color");
-    }
-    if (curve.color_green < 0 || curve.color_green > 255) {
-        throw std::invalid_argument("Invalid green color");
-    }
-    if (curve.color_blue < 0 || curve.color_blue > 255) {
-        throw std::invalid_argument("Invalid blue color");
-    }
-    if (curve.coords.size() < 2) {
-        throw std::invalid_argument("Invalid curve size");
-    }
-    emit(TemporarySignal(curve));
-}
-void MainWindow::execute(std::string&& message) {
-    // TODO: execute
-}
-
-//void MainWindow::resizeEvent(QResizeEvent *event)
-//{
-//    timer->start(100);
-//    QWidget::resizeEvent(event);
-//}

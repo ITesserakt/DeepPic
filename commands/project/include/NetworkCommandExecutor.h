@@ -19,11 +19,11 @@ public:
 private:
     std::shared_ptr<TransporterType> transporter;
 
-    NetworkCommand wrapCommand(Command &&command);
+    NetworkCommand wrapCommand(Command &command);
 
 public:
-    cppcoro::task<void> execute(Command &&cmd) override;
-    cppcoro::task<void> rollback(RCommand &&cmd) override;
+    cppcoro::task<void> execute(Command &cmd) override;
+    cppcoro::task<void> rollback(RCommand &cmd) override;
 
     explicit NetworkCommandExecutor(std::shared_ptr<TransporterType> server);
 };

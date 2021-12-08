@@ -6,7 +6,7 @@
 
 #include "NetworkCommandExecutor.h"
 
-NetworkCommand NetworkCommandExecutor::wrapCommand(Command &&command) {
+NetworkCommand NetworkCommandExecutor::wrapCommand(Command &command) {
     auto network = dynamic_cast<NetworkCommand *>(&command);
     if (network == nullptr) {
         return {transporter->id(), &command};
@@ -14,13 +14,13 @@ NetworkCommand NetworkCommandExecutor::wrapCommand(Command &&command) {
     return std::move(*network);
 }
 
-cppcoro::task<void> NetworkCommandExecutor::execute(Command &&cmd) {
-    auto wrapped = wrapCommand(std::move(cmd));
+cppcoro::task<void> NetworkCommandExecutor::execute(Command &cmd) {
+    auto wrapped = wrapCommand(cmd);
     co_await transporter->send(wrapped);
 }
 
-cppcoro::task<void> NetworkCommandExecutor::rollback(RCommand &&cmd) {
-    auto wrapped = wrapCommand(std::move(cmd));
+cppcoro::task<void> NetworkCommandExecutor::rollback(RCommand &cmd) {
+    auto wrapped = wrapCommand(cmd);
     co_await transporter->send(wrapped);
 }
 

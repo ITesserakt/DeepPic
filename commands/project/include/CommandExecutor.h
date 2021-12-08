@@ -9,8 +9,8 @@
 
 class CommandExecutor {
 public:
-    virtual cppcoro::task<void> execute(Command &&cmd) = 0;
-    virtual cppcoro::task<void> rollback(RCommand &&cmd) = 0;
+    virtual cppcoro::task<void> execute(Command &cmd) = 0;
+    virtual cppcoro::task<void> rollback(RCommand &cmd) = 0;
 
     virtual ~CommandExecutor() = default;
 };

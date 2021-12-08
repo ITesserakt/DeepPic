@@ -1,46 +1,39 @@
-#include "PaintScene.h"
 #include <QPainter>
 #include <QGraphicsPixmapItem>
 
+#include "PaintScene.h"
+#include "CommandBus.h"
+#include "Commands.h"
+
 void PaintScene::mousePressEvent(QGraphicsSceneMouseEvent *event) {
     if (is_brush) {
-        addEllipse(event->scenePos().x() - brush_size / 2,
-                   event->scenePos().y() - brush_size / 2,
-                   brush_size,
-                   brush_size,
-                   QPen(Qt::NoPen),
-                   QBrush(brush_color));
+        command::BrushStarted cmd{event->scenePos(), brush_size, brush_color};
+        bus.execute(cmd);
         previous_point = event->scenePos();
-        line.push_back(previous_point);
+        line.emplace_back(previous_point);
     }
-
 }
 
 void PaintScene::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
     if (is_brush) {
-        addLine(previous_point.x(),
-                previous_point.y(),
-                event->scenePos().x(),
-                event->scenePos().y(),
-                QPen(brush_color, brush_size, Qt::SolidLine, Qt::RoundCap));
+        command::BrushMoved cmd{previous_point, event->scenePos(), brush_size, brush_color};
+        bus.execute(cmd);
         previous_point = event->scenePos();
         line.push_back(previous_point);
     }
 }
 
-
 void PaintScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
     // TODO: write
-    PushCurve({brush_size, brush_color.red(), brush_color.green(), brush_color.blue(),
-               line});
-    line.clear();
+    //    emit PushCurve({brush_size, brush_color.red(), brush_color.green(), brush_color.blue(),
+    //               line});
+    //    line.clear();
 }
 void PaintScene::ChangeBrushStatus() {
     is_brush = !is_brush;
 }
-PaintScene::PaintScene(QObject *parent) {
-    brush_color.setRgb(0,255,0);
-
+PaintScene::PaintScene(CommandBus<true> &bus, QObject *parent) : bus(bus) {
+    brush_color.setRgb(0, 255, 0);
 }
 void PaintScene::SetBrushSize(qreal brush_size) {
     this->brush_size = brush_size;

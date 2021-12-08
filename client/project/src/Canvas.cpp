@@ -13,7 +13,7 @@ Canvas::Canvas(QWidget *parent) :
 
 void Canvas::openImageSlot() {
     QString path = QFileDialog::getOpenFileName(this,
-                                            tr("Open Image"), ".", tr("Image Files (*.png *.jpg *.bmp)"));
+                                                tr("Open image"), ".", tr("Image Files (*.png *.jpg *.bmp)"));
     auto *image = new QImage;
     image->load(path);
 

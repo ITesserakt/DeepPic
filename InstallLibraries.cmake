@@ -23,9 +23,12 @@ FetchContent_Declare(
         GIT_REPOSITORY https://github.com/arthurzam/cppcoro
 )
 
-FetchContent_Declare(
-        smallvec
-        GIT_REPOSITORY https://github.com/ITesserakt/SmallVec
-)
+FetchContent_MakeAvailable(boost-cmake cppcoro jsoncons googletest)
 
-FetchContent_MakeAvailable(boost-cmake cppcoro smallvec jsoncons googletest)
+find_package(Qt5 COMPONENTS
+        Core
+        Gui
+        Widgets
+        REQUIRED)
+
+link_libraries(pthread)

@@ -1,11 +1,11 @@
 #pragma once
 
-#include <QGraphicsScene>
+#include <QColor>
+#include <QDebug>
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
 #include <QTimer>
-#include <QDebug>
-#include <QColor>
+#include "CommandBus.h"
 
 struct Point {
     int32_t i = 0;
@@ -21,22 +21,20 @@ struct Curve {
     std::vector<QPointF> coords;
 };
 
-class PaintScene : public QGraphicsScene
-{
-
+class PaintScene : public QGraphicsScene {
     Q_OBJECT
 
 public:
-    explicit PaintScene(QObject *parent = 0);
+    explicit PaintScene(CommandBus<true> &bus, QObject *parent = 0);
     ~PaintScene() = default;
 
     void ChangeBrushStatus();
     bool BrushStatus();
     void SetBrushSize(qreal brush_size = 10);
-    void SetBrush(qreal brushSize = 10, const QColor& brushColor = Qt::red);
+    void SetBrush(qreal brushSize = 10, const QColor &brushColor = Qt::red);
 
 signals:
-    void PushCurve(const Curve& curve);
+    void PushCurve(const Curve &curve);
 
 public slots:
     void SetBrushSizeSlot(int size);
@@ -45,22 +43,18 @@ public slots:
     void SetGreenSlot(int transparency);
     void SetBlueSlot(int transparency);
 
-    void PaintCurveSlot(const Curve& curve);
+    void PaintCurveSlot(const Curve &curve);
 
 private:
     bool is_brush = false;
-
     QPointF previous_point;
-
     std::vector<QPointF> line;
-
     qreal brush_size = 10;
-
     QColor brush_color;
+    CommandBus<true> &bus;
 
 private:
-    void mousePressEvent(QGraphicsSceneMouseEvent * event);
-    void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
-
+    void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+    void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
 };

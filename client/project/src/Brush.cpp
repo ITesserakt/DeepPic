@@ -2,13 +2,14 @@
 // Created by eremey on 27.11.2021.
 //
 #include "Brush.h"
-#include <QPixmap>
 #include <QIcon>
+#include <QPixmap>
 
+#include "CommandBus.h"
+#include "Commands.h"
 #include <cassert>
 
-Brush::Brush(qreal brushSize, const QColor& brushColor, QWidget *parent) :
-    brushSize(brushSize), brushColor(brushColor), QAction(parent) {
+Brush::Brush(qreal brushSize, const QColor &brushColor, QWidget *parent) : brushSize(brushSize), brushColor(brushColor), QAction(parent) {
     assert(parent != nullptr);
     connect(this, &QAction::triggered, this, &Brush::BrushTriggeredSlot);
 

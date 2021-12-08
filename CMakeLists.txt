@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.19)
+cmake_minimum_required(VERSION 3.15)
 
 project(DeepPic VERSION 0.1.0 LANGUAGES CXX C)
 
@@ -12,13 +12,13 @@ else ()
   set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 endif ()
 
-file(GLOB_RECURSE SOURCE_FILES project/src/*.cpp)
-
+enable_testing()
 include(InstallLibraries.cmake)
 
-add_subdirectory(project/client)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
 
-add_executable(main ${SOURCE_FILES})
-if (NOT WIN32)
-  target_link_libraries(main PRIVATE pthread)
-endif ()
+add_subdirectory(backend)
+add_subdirectory(commands)
+add_subdirectory(client)
