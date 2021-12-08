@@ -1,15 +1,15 @@
 #include "MainWindow.h"
-#include "QGraphicsView"
-#include "Palette.h"
 #include "Changer.h"
+#include "Palette.h"
+#include "QGraphicsView"
 
 #include <QAction>
-#include <QToolBar>
-#include <QMenuBar>
-#include <QMenu>
-#include <QStatusBar>
 #include <QIcon>
+#include <QMenu>
+#include <QMenuBar>
 #include <QPixmap>
+#include <QStatusBar>
+#include <QToolBar>
 
 // Temporary
 #include <fstream>
@@ -23,8 +23,15 @@
 
 #include <iostream>
 
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
+
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent) {
+        QMainWindow(parent),
+        serverConnection(std::string("127.0.0.1"), SERVER_PORT, ServerConnectionCallbacks{[this](std::string &&message) {
+            this->execute(std::move(message));
+        }, {}}) {
 
     scene = new PaintScene(this);
     canvas = new Canvas;
@@ -85,7 +92,12 @@ MainWindow::MainWindow(QWidget *parent) :
     timer = new QTimer();
     connect(timer, &QTimer::timeout, this, &MainWindow::slotTimer);
     timer->start(500);
-    // TODO: client
+
+    std::thread serverConnectionThread([this]() { this->serverConnection.start(); });
+    serverConnectionThread.detach();
+
+    json test_target = {{"target", "sharing_document"}};
+    serverConnection.write(test_target.dump() + std::string("\r\n"));
 }
 
 MainWindow::~MainWindow() {
@@ -95,7 +107,7 @@ void MainWindow::slotTimer() {
     //scene->setSceneRect(0, 0, qGraphicsView->width() - 20, qGraphicsView->height() - 20);
 }
 
-void MainWindow::slotBrush(qreal brushSize, const QColor& brushColor) {
+void MainWindow::slotBrush(qreal brushSize, const QColor &brushColor) {
 
     if (scene->BrushStatus()) {
         parametersPanel->clear();
@@ -120,7 +132,7 @@ void MainWindow::slotBrush(qreal brushSize, const QColor& brushColor) {
     scene->ChangeBrushStatus();
 }
 
-void MainWindow::executeBrush(const Curve& curve) {
+void MainWindow::executeBrush(const Curve &curve) {
     if (curve.brush_size < 0) {
         throw std::invalid_argument("Invalid size");
     }
@@ -138,8 +150,26 @@ void MainWindow::executeBrush(const Curve& curve) {
     }
     emit(TemporarySignal(curve));
 }
-void MainWindow::execute(std::string&& message) {
-    // TODO: execute
+
+void MainWindow::execute(std::string &&message) {
+    std::cout << "MainWindow::execute(), message = " << message << std::endl;
+    try {
+        auto command = json::parse(message);
+        if (command["target"] == "sharing_document" && command["status"] == "OK") {
+            serverConnection.setServerPort(command["port"]);
+            serverConnection.setServerUrl(command["address"]);
+            serverConnection.reconnectionToServer();
+        }
+
+        json command_json = {{"target",     "auth"},
+                             {"auth_token", command["auth_token"]}};
+        serverConnection.write(command_json.dump() + std::string("\r\n"));
+    } catch (...) {
+        std::cerr << "some exception" << std::endl;
+        json command_json = {{"target",     "auth"},
+                             {"auth_token", "dummy_aboba"}};
+        serverConnection.write(command_json.dump() + std::string("\r\n"));
+    }
 }
 
 //void MainWindow::resizeEvent(QResizeEvent *event)

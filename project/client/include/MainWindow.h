@@ -9,6 +9,7 @@
 #include "ToolsPanel.h"
 #include "ParametersPanel.h"
 #include "Canvas.h"
+#include "ServerConnection.h"
 
 class MainWindow : public QMainWindow
 {
@@ -32,6 +33,8 @@ private:
     ParametersPanel *parametersPanel;
 
     QTimer *timer;
+
+    ServerConnection serverConnection;
 
 private:
     long temporary_read_position = 0;
