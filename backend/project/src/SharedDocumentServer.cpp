@@ -1,10 +1,9 @@
 #include <boost/asio.hpp>
-#include <boost/bind.hpp>
 #include <iostream>
-
-#include "SharedDocumentServer.h"
-#include "IManageCommand.h"
 #include <boost/log/common.hpp>
+
+#include "IManageCommand.h"
+#include "SharedDocumentServer.h"
 
 SharedDocumentServer::SharedDocumentServer(boost::asio::io_context &service) : server_(start_since_port++, service,
                                                                                        ServerCallbacks{
@@ -55,7 +54,7 @@ void SharedDocumentServer::onReadCb(std::shared_ptr<Connection> author, std::str
 
 void SharedDocumentServer::onDeleteConnection(std::shared_ptr<Connection> connection) {
     auto pos = connections_.begin();
-    for (auto &cl: connections_) {
+    for (auto &cl : connections_) {
         if (*pos == connection) {
             break;
         }
