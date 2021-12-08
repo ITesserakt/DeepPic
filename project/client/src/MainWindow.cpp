@@ -85,6 +85,7 @@ MainWindow::MainWindow(QWidget *parent) :
     timer = new QTimer();
     connect(timer, &QTimer::timeout, this, &MainWindow::slotTimer);
     timer->start(500);
+    // TODO: client
 }
 
 MainWindow::~MainWindow() {
@@ -136,6 +137,9 @@ void MainWindow::executeBrush(const Curve& curve) {
         throw std::invalid_argument("Invalid curve size");
     }
     emit(TemporarySignal(curve));
+}
+void MainWindow::execute(std::string&& message) {
+    // TODO: execute
 }
 
 //void MainWindow::resizeEvent(QResizeEvent *event)

@@ -30,6 +30,7 @@ void PaintScene::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
 
 
 void PaintScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
+    // TODO: write
     PushCurve({brush_size, brush_color.red(), brush_color.green(), brush_color.blue(),
                line});
     line.clear();
@@ -73,6 +74,7 @@ void PaintScene::SetBrush(qreal brushSize, const QColor& brushColor) {
     brush_color = brushColor;
 }
 void PaintScene::PaintCurveSlot(const Curve &curve) {
+    // TODO: read
     assert(curve.coords.size() > 1);
     assert(curve.color_red < 256 && curve.color_red >= 0);
     assert(curve.color_green < 256 && curve.color_green >= 0);
