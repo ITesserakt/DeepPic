@@ -38,13 +38,10 @@ signals:
 //    void connectSignal();
 private slots:
     void initSlot();
-    void shareSlot();
     void connectSlot();
 
     void writeConnectionSlot();
     void writeShareSlot();
-
-    void successfulConnectSlot();
 
 
     void addressChangedSlot(const QString &text);

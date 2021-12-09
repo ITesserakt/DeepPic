@@ -77,7 +77,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(connector, &Connector::writeSignal, this, &MainWindow::writeSlot);
     connect(this, &MainWindow::failedShareSignal, connector, &Connector::failedShareSlot);
     connect(this, &MainWindow::failedConnectSignal, connector, &Connector::failedConnectSlot);
-    //connect(this, &MainWindow::successfulConnectSignal, connector, &Connector::successfulConnectSlot); // TODO
+    connect(this, &MainWindow::successfulConnectSignal, connector, &Connector::successfulConnectSlot);
     connect(this, &MainWindow::successfulShareSignal, connector, &Connector::successfulShareSlot);
 
 
@@ -96,7 +96,6 @@ MainWindow::MainWindow(QWidget *parent) :
     timer = new QTimer();
     connect(timer, &QTimer::timeout, this, &MainWindow::slotTimer);
     timer->start(500);
-    // TODO: client
 }
 
 MainWindow::~MainWindow() {
@@ -150,7 +149,7 @@ void MainWindow::slotBrush(qreal brushSize, const QColor& brushColor) {
 //    emit(addCurve(curve));
 //}
 void MainWindow::execute(std::string&& message) {
-    // TODO: add parser
+    // TODO: 4) add parser
 
     // TODO: if sharing failed
     if (false) {
@@ -159,7 +158,7 @@ void MainWindow::execute(std::string&& message) {
 
     // TODO: if sharing succeeded
     if (false) {
-        std::string message = ""; // TODO: add message format
+        std::string message = "address|token"; ////  create a message from the command
         emit(successfulShareSignal(message));
     }
 
@@ -170,13 +169,13 @@ void MainWindow::execute(std::string&& message) {
 
     // TODO: if joining succeeded
     if (false) {
-        std::string message = ""; // TODO: add message format
+        std::string message = "address|token"; ////  create a message from the command
         emit(successfulConnectSignal(message));
     }
 
     // TODO: if need to draw a line
     if (false) {
-        std::string message = "";// TODO: add parser message->curve
+        std::string message = ""; ////  create a message from the command
         emit(addCurve(message));
     }
 

@@ -13,10 +13,11 @@ struct Point {
 };
 
 struct Curve {
-    double brush_size = 0;
+    int32_t brush_size = 0;
     int32_t color_red = 0;
     int32_t color_green = 0;
     int32_t color_blue = 0;
+    int32_t opacity = 0;
 
     std::vector<QPointF> coords;
 };
@@ -36,7 +37,7 @@ public:
     void SetBrush(qreal brushSize = 10, const QColor& brushColor = Qt::red);
 
 signals:
-    void PushCurve(const Curve& curve);
+//    void PushCurve(const Curve& curve);
     void writeCurveSignal(std::string& curve);
 
 public slots:
@@ -46,18 +47,18 @@ public slots:
     void SetGreenSlot(int transparency);
     void SetBlueSlot(int transparency);
 
-    void PaintCurveSlot(const Curve& curve);
+//    void PaintCurveSlot(const Curve& curve);
 
     void readCurveSlot(std::string& message);
 
 private:
     bool is_brush = false;
 
-    QPointF previous_point;
+    QPoint previous_point;
 
-    std::vector<QPointF> line;
+    std::vector<QPoint> curve;
 
-    qreal brush_size = 10;
+    int32_t brush_size = 10;
 
     QColor brush_color;
 
