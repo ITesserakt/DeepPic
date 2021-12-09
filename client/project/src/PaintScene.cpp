@@ -24,15 +24,15 @@ void PaintScene::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
 }
 
 void PaintScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
-    // TODO: write
-    //    emit PushCurve({brush_size, brush_color.red(), brush_color.green(), brush_color.blue(),
-    //               line});
-    //    line.clear();
+    //     TODO: write
+    emit PushCurve({brush_size, brush_color.red(), brush_color.green(), brush_color.blue(),
+                    line});
+    line.clear();
 }
 void PaintScene::ChangeBrushStatus() {
     is_brush = !is_brush;
 }
-PaintScene::PaintScene(CommandBus<true> &bus, QObject *parent) : bus(bus) {
+PaintScene::PaintScene(CommandBus &bus, QObject *parent) : bus(bus) {
     brush_color.setRgb(0, 255, 0);
 }
 void PaintScene::SetBrushSize(qreal brush_size) {

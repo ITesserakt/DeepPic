@@ -6,7 +6,7 @@ add_library(backend ${SOURCE_FILES})
 
 target_link_libraries(backend INTERFACE sha256
         PUBLIC jsoncons cppcoro Boost::boost)
-target_include_directories(backend PRIVATE project/include)
+target_include_directories(backend PUBLIC project/include)
 target_include_directories(sha256 PUBLIC project/include)
 
 add_executable(backend_test ${TEST_FILES})

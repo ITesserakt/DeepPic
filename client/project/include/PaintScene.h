@@ -25,7 +25,7 @@ class PaintScene : public QGraphicsScene {
     Q_OBJECT
 
 public:
-    explicit PaintScene(CommandBus<true> &bus, QObject *parent = 0);
+    explicit PaintScene(CommandBus &bus, QObject *parent = 0);
     ~PaintScene() = default;
 
     void ChangeBrushStatus();
@@ -51,7 +51,7 @@ private:
     std::vector<QPointF> line;
     qreal brush_size = 10;
     QColor brush_color;
-    CommandBus<true> &bus;
+    CommandBus &bus;
 
 private:
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;

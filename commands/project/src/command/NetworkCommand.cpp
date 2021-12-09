@@ -5,16 +5,14 @@
 #include "command/NetworkCommand.h"
 
 void NetworkCommand::rollback() {
-    auto rCommand = dynamic_cast<RCommand *>(command.get());
-    if (rCommand != nullptr) {
-        command.release();
-        rCommand->rollback();
+    if (isRollback()) {
+        inner<std::unique_ptr<RCommand>>()->rollback();
     }
 }
 
-NetworkCommand::NetworkCommand(unsigned int clientId, Command *command)
+NetworkCommand::NetworkCommand(unsigned int clientId, std::unique_ptr<Command> command)
     : clientId(clientId), command(command) {}
 
 void NetworkCommand::execute() {
-    command->execute();
+    inner<std::unique_ptr<Command>>()->execute();
 }

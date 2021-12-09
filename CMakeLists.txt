@@ -15,10 +15,7 @@ endif ()
 enable_testing()
 include(InstallLibraries.cmake)
 
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
-
 add_subdirectory(backend)
 add_subdirectory(commands)
 add_subdirectory(client)
+add_subdirectory(server)

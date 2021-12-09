@@ -15,14 +15,13 @@
 #include "cppcoro/task.hpp"
 #include "cppcoro/when_all_ready.hpp"
 
-template <bool blocking>
 class CommandBus {
 private:
     cppcoro::static_thread_pool thread_pool;
     std::vector<std::unique_ptr<CommandExecutor>> executors;
 
 public:
-    using BlockingCall = typename std::conditional<blocking, void, cppcoro::task<>>::type;
+    using BlockingCall = void;
 
     explicit CommandBus(unsigned int threadsCount = 1) : thread_pool(threadsCount) {}
 
@@ -31,7 +30,8 @@ public:
         std::vector<cppcoro::task<>> tasks;
         for (auto &executor : executors)
             tasks.emplace_back(executor->execute(command));
-        auto result = cppcoro::sync_wait(cppcoro::when_all_ready(std::move(tasks)));
+        std::vector<cppcoro::detail::when_all_task<void>> result =
+                cppcoro::sync_wait(cppcoro::when_all_ready(std::move(tasks)));
 
         std::exception_ptr ex;
         for (auto &solution : result) {
@@ -50,7 +50,8 @@ public:
         std::vector<cppcoro::task<>> tasks;
         for (auto &executor : executors)
             tasks.emplace_back(executor->rollback(command));
-        auto result = cppcoro::sync_wait(cppcoro::when_all_ready(std::move(tasks)));
+        std::vector<cppcoro::detail::when_all_task<void>> result =
+                cppcoro::sync_wait(cppcoro::when_all_ready(std::move(tasks)));
 
         std::exception_ptr ex;
         for (auto &solution : result) {

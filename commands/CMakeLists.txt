@@ -1,9 +1,9 @@
 file(GLOB_RECURSE SOURCE_FILES project/src/*.cpp)
 file(GLOB_RECURSE TEST_FILES project/test/*.cpp)
 
-add_library(commands ${SOURCE_FILES})
+add_library(commands SHARED ${SOURCE_FILES})
 
-target_include_directories(commands PRIVATE project/include)
+target_include_directories(commands PUBLIC project/include)
 target_link_libraries(commands PUBLIC backend cppcoro)
 
 add_executable(commands_test ${TEST_FILES})

@@ -7,15 +7,14 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <cppcoro/task.hpp>
 
 #include "Serializer.h"
 
 template <typename IS, Serializer<IS, std::ostringstream> S>
 class Transporter {
-private:
-    std::unique_ptr<S> serializer;
-
 protected:
+    std::unique_ptr<S> serializer;
     virtual cppcoro::task<> send(std::ostringstream &stream) = 0;
 
 public:
@@ -26,7 +25,7 @@ public:
         serializer = std::make_unique<S>(std::forward<Args>(args)...);
     }
 
-    virtual void onReceived(std::string data) = 0;
+    virtual cppcoro::task<> onReceived(std::string data) = 0;
 
     template <typename T>
     cppcoro::task<> send(T &data) {

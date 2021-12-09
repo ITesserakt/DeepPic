@@ -20,34 +20,34 @@ public:
     UICommandExecutor(QGraphicsScene &scene) : scene_(&scene) {}
 
     cppcoro::task<> execute(Command &cmd) {
-        Command &actualCommand = cmd;
+        std::unique_ptr<Command> actualCommand{&cmd};
         if (dynamic_cast<NetworkCommand *>(&cmd) != nullptr) {
             const auto &network = *dynamic_cast<NetworkCommand *>(&cmd);
-            actualCommand = network.inner<Command>();
+            actualCommand = network.inner<std::unique_ptr<Command>>();
         }
-        if (dynamic_cast<command::UI *>(&actualCommand) != nullptr) {
+        if (dynamic_cast<command::UI *>(actualCommand.get()) != nullptr) {
             auto &ui = *dynamic_cast<command::UI *>(&cmd);
             ui.scene = scene_;
         }
 
         cppcoro::schedule_on(uiScheduler_);
-        actualCommand.execute();
+        actualCommand->execute();
         co_return;
     }
 
     cppcoro::task<> rollback(RCommand &cmd) {
-        RCommand &actualCommand = cmd;
+        std::unique_ptr<RCommand> actualCommand{&cmd};
         if (dynamic_cast<NetworkCommand *>(&cmd) != nullptr) {
             const auto &network = *dynamic_cast<NetworkCommand *>(&cmd);
-            actualCommand = network.inner<RCommand>();
+            actualCommand = network.inner<std::unique_ptr<RCommand>>();
         }
-        if (dynamic_cast<command::UI *>(&actualCommand) != nullptr) {
-            auto &ui = *dynamic_cast<command::UI *>(&actualCommand);
+        if (dynamic_cast<command::UI *>(actualCommand.get()) != nullptr) {
+            auto &ui = *dynamic_cast<command::UI *>(&cmd);
             ui.scene = scene_;
         }
 
         cppcoro::schedule_on(uiScheduler_);
-        actualCommand.rollback();
+        actualCommand->rollback();
         co_return;
     }
 };
