@@ -30,9 +30,11 @@ void PaintScene::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
 
 
 void PaintScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
-    // TODO: write
-    PushCurve({brush_size, brush_color.red(), brush_color.green(), brush_color.blue(),
-               line});
+    // TODO: add curve serialization
+    std::string message = "curve";
+    emit(writeCurveSignal(message));
+//    PushCurve({brush_size, brush_color.red(), brush_color.green(), brush_color.blue(),
+//               line});
     line.clear();
 }
 void PaintScene::ChangeBrushStatus() {
@@ -74,7 +76,6 @@ void PaintScene::SetBrush(qreal brushSize, const QColor& brushColor) {
     brush_color = brushColor;
 }
 void PaintScene::PaintCurveSlot(const Curve &curve) {
-    // TODO: read
     assert(curve.coords.size() > 1);
     assert(curve.color_red < 256 && curve.color_red >= 0);
     assert(curve.color_green < 256 && curve.color_green >= 0);
@@ -82,6 +83,24 @@ void PaintScene::PaintCurveSlot(const Curve &curve) {
 
     for (int i = 1; i < curve.coords.size(); ++i) {
 //        std::cout << curve.coords[i].x() << "\n";
+        addLine(curve.coords[i].x(),
+                curve.coords[i].y() ,
+                curve.coords[i - 1].x(),
+                curve.coords[i - 1].y(),
+                QPen(QColor(curve.color_red, curve.color_green, curve.color_blue),
+                     curve.brush_size, Qt::SolidLine, Qt::RoundCap));
+    }
+}
+void PaintScene::readCurveSlot(std::string &message) {
+
+    Curve curve; // TODO:  add message parser
+    assert(curve.coords.size() > 1);
+    assert(curve.color_red < 256 && curve.color_red >= 0);
+    assert(curve.color_green < 256 && curve.color_green >= 0);
+    assert(curve.color_blue < 256 && curve.color_blue >= 0);
+
+    for (int i = 1; i < curve.coords.size(); ++i) {
+        //        std::cout << curve.coords[i].x() << "\n";
         addLine(curve.coords[i].x(),
                 curve.coords[i].y() ,
                 curve.coords[i - 1].x(),

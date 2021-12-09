@@ -27,6 +27,9 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent) {
 
     scene = new PaintScene(this);
+    connect(scene, &PaintScene::writeCurveSignal, this, &MainWindow::writeSlot);
+    connect(this, &MainWindow::addCurve, scene, &PaintScene::readCurveSlot);
+
     canvas = new Canvas;
     canvas->setScene(scene);
 
@@ -67,15 +70,23 @@ MainWindow::MainWindow(QWidget *parent) :
     addToolBar(parameters_panel);
     parameters_panel->setFixedHeight(40);
 
-    auto *right_panel = new QToolBar;
-    addToolBar(Qt::RightToolBarArea, right_panel);
-    right_panel->setFixedWidth(400);
+    connector = new Connector(this);
+    addToolBar(Qt::RightToolBarArea, connector);
+    connector->setFixedWidth(400);
+
+    connect(connector, &Connector::writeSignal, this, &MainWindow::writeSlot);
+    connect(this, &MainWindow::failedShareSignal, connector, &Connector::failedShareSlot);
+    connect(this, &MainWindow::failedConnectSignal, connector, &Connector::failedConnectSlot);
+    //connect(this, &MainWindow::successfulConnectSignal, connector, &Connector::successfulConnectSlot); // TODO
+    connect(this, &MainWindow::successfulShareSignal, connector, &Connector::successfulShareSlot);
+
+
 
     toolsPanel = new ToolsPanel;
     addToolBar(Qt::LeftToolBarArea, toolsPanel);
 
     connect(toolsPanel, &ToolsPanel::BrushTriggered, this, &MainWindow::slotBrush);
-    connect(this, &MainWindow::TemporarySignal, scene, &PaintScene::PaintCurveSlot);
+    //connect(this, &MainWindow::addCurve, scene, &PaintScene::PaintCurveSlot);
     //connect(scene, &PaintScene::PushCurve, this, &MainWindow::TemporaryWriterSlot);
 
 
@@ -92,7 +103,7 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::slotTimer() {
-    //scene->setSceneRect(0, 0, qGraphicsView->width() - 20, qGraphicsView->height() - 20);
+    scene->setSceneRect(0, 0, canvas->width() - 20, canvas->height() - 20);
 }
 
 void MainWindow::slotBrush(qreal brushSize, const QColor& brushColor) {
@@ -120,26 +131,58 @@ void MainWindow::slotBrush(qreal brushSize, const QColor& brushColor) {
     scene->ChangeBrushStatus();
 }
 
-void MainWindow::executeBrush(const Curve& curve) {
-    if (curve.brush_size < 0) {
-        throw std::invalid_argument("Invalid size");
-    }
-    if (curve.color_red < 0 || curve.color_red > 255) {
-        throw std::invalid_argument("Invalid red color");
-    }
-    if (curve.color_green < 0 || curve.color_green > 255) {
-        throw std::invalid_argument("Invalid green color");
-    }
-    if (curve.color_blue < 0 || curve.color_blue > 255) {
-        throw std::invalid_argument("Invalid blue color");
-    }
-    if (curve.coords.size() < 2) {
-        throw std::invalid_argument("Invalid curve size");
-    }
-    emit(TemporarySignal(curve));
-}
+//void MainWindow::executeBrush(const Curve& curve) {
+//    if (curve.brush_size < 0) {
+//        throw std::invalid_argument("Invalid size");
+//    }
+//    if (curve.color_red < 0 || curve.color_red > 255) {
+//        throw std::invalid_argument("Invalid red color");
+//    }
+//    if (curve.color_green < 0 || curve.color_green > 255) {
+//        throw std::invalid_argument("Invalid green color");
+//    }
+//    if (curve.color_blue < 0 || curve.color_blue > 255) {
+//        throw std::invalid_argument("Invalid blue color");
+//    }
+//    if (curve.coords.size() < 2) {
+//        throw std::invalid_argument("Invalid curve size");
+//    }
+//    emit(addCurve(curve));
+//}
 void MainWindow::execute(std::string&& message) {
-    // TODO: execute
+    // TODO: add parser
+
+    // TODO: if sharing failed
+    if (false) {
+        emit(failedShareSignal());
+    }
+
+    // TODO: if sharing succeeded
+    if (false) {
+        std::string message = ""; // TODO: add message format
+        emit(successfulShareSignal(message));
+    }
+
+    // TODO: if joining failed
+    if (false) {
+        emit(failedConnectSignal());
+    }
+
+    // TODO: if joining succeeded
+    if (false) {
+        std::string message = ""; // TODO: add message format
+        emit(successfulConnectSignal(message));
+    }
+
+    // TODO: if need to draw a line
+    if (false) {
+        std::string message = "";// TODO: add parser message->curve
+        emit(addCurve(message));
+    }
+
+}
+void MainWindow::writeSlot(std::string &message) {
+    // TODO: client write
 }
 
 //void MainWindow::resizeEvent(QResizeEvent *event)

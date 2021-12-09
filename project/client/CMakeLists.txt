@@ -15,9 +15,11 @@ if (WITH_SANITIZER)
 endif ()
 
 set(SOURCES src/MainWindow.cpp  src/PaintScene.cpp src/Palette.cpp src/Changer.cpp
-        src/ToolsPanel.cpp src/ParametersPanel.cpp src/Brush.cpp src/Canvas.cpp src/Loader.cpp)
+        src/ToolsPanel.cpp src/ParametersPanel.cpp src/Brush.cpp src/Canvas.cpp src/Loader.cpp
+        src/Connector.cpp)
 set(HEADER_FILES include/Palette.h include/MainWindow.h include/PaintScene.h include/Changer.h
-        include/ToolsPanel.h include/ParametersPanel.h include/Brush.h include/Canvas.h include/Loader.h)
+        include/ToolsPanel.h include/ParametersPanel.h include/Brush.h include/Canvas.h include/Loader.h
+        include/Connector.h)
 
 add_executable(client src/main.cpp  ${SOURCES} ${HEADER_FILES})
 target_link_libraries(client

@@ -37,6 +37,7 @@ public:
 
 signals:
     void PushCurve(const Curve& curve);
+    void writeCurveSignal(std::string& curve);
 
 public slots:
     void SetBrushSizeSlot(int size);
@@ -46,6 +47,8 @@ public slots:
     void SetBlueSlot(int transparency);
 
     void PaintCurveSlot(const Curve& curve);
+
+    void readCurveSlot(std::string& message);
 
 private:
     bool is_brush = false;
