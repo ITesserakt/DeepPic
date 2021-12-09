@@ -28,10 +28,7 @@
 using json = nlohmann::json;
 
 MainWindow::MainWindow(QWidget *parent) :
-        QMainWindow(parent),
-        serverConnection(std::string("127.0.0.1"), SERVER_PORT, ServerConnectionCallbacks{[this](std::string &&message) {
-            this->execute(std::move(message));
-        }, {}}) {
+        QMainWindow(parent) {
 
     scene = new PaintScene(this);
     canvas = new Canvas;
@@ -93,11 +90,15 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(timer, &QTimer::timeout, this, &MainWindow::slotTimer);
     timer->start(500);
 
-    std::thread serverConnectionThread([this]() { this->serverConnection.start(); });
-    serverConnectionThread.detach();
+    serverConnection_ = std::make_unique<ServerConnection>(std::string("127.0.0.1"), 8080, ServerConnectionCallbacks{
+            [this](std::string &&message) { this->execute(std::move(message)); },
+            {}
+    });
+
+    serverConnection_->start();
 
     json test_target = {{"target", "sharing_document"}};
-    serverConnection.write(test_target.dump() + std::string("\r\n"));
+    serverConnection_->write(test_target.dump());
 }
 
 MainWindow::~MainWindow() {
@@ -156,19 +157,20 @@ void MainWindow::execute(std::string &&message) {
     try {
         auto command = json::parse(message);
         if (command["target"] == "sharing_document" && command["status"] == "OK") {
-            serverConnection.setServerPort(command["port"]);
-            serverConnection.setServerUrl(command["address"]);
-            serverConnection.reconnectionToServer();
-        }
+            forDocumentConnection_ = std::make_unique<ServerConnection>(std::string("127.0.0.1"), 8080, ServerConnectionCallbacks{
+                    [this](std::string &&message) { this->execute(std::move(message)); },
+                    {}
+            });
+            forDocumentConnection_->setServerPort(command["port"]);
+            forDocumentConnection_->setServerUrl(command["address"]);
+            forDocumentConnection_->start();
 
-        json command_json = {{"target",     "auth"},
-                             {"auth_token", command["auth_token"]}};
-        serverConnection.write(command_json.dump() + std::string("\r\n"));
+            json command_json = {{"target",     "auth"},
+                                 {"auth_token", command["auth_token"]}};
+            forDocumentConnection_->write(command_json.dump() + std::string("\r\n"));
+        }
     } catch (...) {
         std::cerr << "some exception" << std::endl;
-        json command_json = {{"target",     "auth"},
-                             {"auth_token", "dummy_aboba"}};
-        serverConnection.write(command_json.dump() + std::string("\r\n"));
     }
 }
 

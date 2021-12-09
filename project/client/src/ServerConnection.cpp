@@ -39,7 +39,8 @@ void ServerConnection::readHandler(const boost::system::error_code &err, size_t 
 }
 
 void ServerConnection::run_ioc() {
-    service_.run();
+    std::thread run_thread([this]() { service_.run(); });
+    run_thread.detach();
 }
 
 void ServerConnection::start() {
@@ -55,10 +56,13 @@ void ServerConnection::write(std::string &&message) {
     for (int i = 0; i < message.length(); ++i) {
         sendBuf_[i] = message[i];
     }
+    std::string end_str(END_STR);
+    for (int i = message.length(); i < message.length() + end_str.length(); ++i) {
+        sendBuf_[i] = end_str[i - message.length()];
+    }
 
     std::cout << "ServerConnection::write()" << std::endl;
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    boost::asio::async_write(socket_, boost::asio::buffer(sendBuf_, message.length()),
+    boost::asio::async_write(socket_, boost::asio::buffer(sendBuf_, message.length() + end_str.length()),
                              [this](const boost::system::error_code &err, size_t bytes_transferred) { this->writeHandler(err); });
 }
 
@@ -96,9 +100,4 @@ void ServerConnection::setServerPort(int port) {
     serverPort_ = port;
 }
 
-void ServerConnection::reconnectionToServer() {
-    socket_.close();
-    boost::asio::ip::tcp::endpoint ep(boost::asio::ip::address::from_string(serverUrl_), serverPort_);
-    socket_.connect(ep);
-    read();
-}
+

@@ -34,7 +34,8 @@ private:
 
     QTimer *timer;
 
-    ServerConnection serverConnection;
+    std::unique_ptr<ServerConnection> serverConnection_;
+    std::unique_ptr<ServerConnection> forDocumentConnection_;
 
 private:
     long temporary_read_position = 0;

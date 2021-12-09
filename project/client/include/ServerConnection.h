@@ -41,8 +41,6 @@ public:
 
     void setServerPort(int port);
 
-    void reconnectionToServer();
-
 private:
     void read();
 
