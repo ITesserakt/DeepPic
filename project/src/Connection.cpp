@@ -42,6 +42,7 @@ void Connection::write(std::string &command, std::function<void(std::shared_ptr<
         sendBuf_[i] = end_str[i - command.length()];
     }
 
+    std::cout << "send str = " << std::string(sendBuf_, sendBuf_ + command.length() + end_str.length()) << std::endl;
     sock_.async_write_some(boost::asio::buffer(sendBuf_, command.length() + end_str.length()),
                            boost::bind(&Connection::writeHandler, shared_from_this(), _1, _2, onWriteCb));
 }
