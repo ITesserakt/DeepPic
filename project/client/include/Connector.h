@@ -24,18 +24,11 @@ public slots:
     void successfulConnectSlot(std::string& message);
 
 private:
-    QPushButton* connectButton;
-    QPushButton* shareButton;
-    QPushButton* canselButton;
-    //QLabel* message;
-
-    std::string address = "";
-    std::string token = "";
+    std::string address;
+    std::string token;
 
 signals:
     void initSignal();
-//    void shareSignal();
-//    void connectSignal();
 private slots:
     void initSlot();
     void connectSlot();
@@ -47,4 +40,7 @@ private slots:
     void addressChangedSlot(const QString &text);
     void tokenChangedSlot(const QString &text);
 
+private:
+    void success(QString &message);
+    void fail(QString &message);
 };

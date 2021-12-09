@@ -20,10 +20,10 @@ Connector::Connector(QWidget *parent) : QToolBar(parent) {
 
 void Connector::initSlot() {
     clear();
-    shareButton =  new QPushButton("Share document", this);
+    auto shareButton =  new QPushButton("Share document", this);
     //connect(shareButton, &QPushButton::clicked, this, &Connector::shareSlot);
     connect(shareButton, &QPushButton::clicked, this, &Connector::writeShareSlot);
-    connectButton = new QPushButton("Connect to document", this);
+    auto connectButton = new QPushButton("Connect to document", this);
     connect(connectButton, &QPushButton::clicked, this, &Connector::connectSlot);
 
 //    connect(this, &Connector::connectSignal, this, &Connector::connectSlot);
@@ -46,9 +46,9 @@ void Connector::connectSlot() {
     connect(tokenEdt, &QLineEdit::textEdited, this, &Connector::tokenChangedSlot);
     addWidget(tokenEdt);
 
-    canselButton = new QPushButton("Cansel", this);
+    auto canselButton = new QPushButton("Cansel", this);
     connect(canselButton, &QPushButton::clicked, this, &Connector::initSlot);
-    connectButton = new QPushButton("Connect", this);
+    auto connectButton = new QPushButton("Connect", this);
     connect(connectButton, &QPushButton::clicked, this, &Connector::writeConnectionSlot);
 
 
@@ -79,24 +79,12 @@ void Connector::writeShareSlot() {
     emit(writeSignal(message));
 }
 void Connector::failedShareSlot() {
-    canselButton = new QPushButton("Cansel", this);
-    connect(canselButton, &QPushButton::clicked, this, &Connector::initSlot);
-    auto message =  new QLabel(this);
-
-    clear();
-    message->setText("failed");
-    addWidget(message);
-    addWidget(canselButton);
+    QString message = "Share failed";
+    fail(message);
 }
 void Connector::failedConnectSlot() {
-    canselButton = new QPushButton("Cansel", this);
-    connect(canselButton, &QPushButton::clicked, this, &Connector::initSlot);
-    auto message =  new QLabel(this);
-
-    clear();
-    message->setText("failed");
-    addWidget(message);
-    addWidget(canselButton);
+    QString message = "Connection failed";
+    fail(message);
 }
 
 void separate(const std::string &message, std::string& l, std::string& r, char separator) {
@@ -105,31 +93,36 @@ void separate(const std::string &message, std::string& l, std::string& r, char s
 }
 
 void Connector::successfulShareSlot(std::string &message) {
-//    std::string separator = "|";
-//    address = message.substr(0, message.find(separator));
-//    token = message.substr(message.find(separator) + 1, message.size() - 1);
     separate(message, address, token, '|');
 
-    canselButton = new QPushButton("Cansel", this);
-    connect(canselButton, &QPushButton::clicked, this, &Connector::initSlot);
-    auto label =  new QLabel(this);
-
-    clear();
     QString msg = QString::fromStdString("You're sharing the document.\nAddress: "+ address + "\nToken: " + token);
-    label->setText(msg);
-    addWidget(label);
-    addWidget(canselButton);
+
+    success(msg);
 }
 void Connector::successfulConnectSlot(std::string& message) {
     separate(message, address, token, '|');
 
-    canselButton = new QPushButton("Cansel", this);
+    QString msg = QString::fromStdString("You've joined the document.\nAddress: " + address + "\nToken: " + token);
+
+    success(msg);
+}
+void Connector::success(QString &message) {
+    auto canselButton = new QPushButton("Cansel", this);
     connect(canselButton, &QPushButton::clicked, this, &Connector::initSlot);
+    auto label =  new QLabel(this);
+    label->setText(message);
+
+    clear();
+    addWidget(label);
+    addWidget(canselButton);
+}
+void Connector::fail(QString &message) {
+    auto okButton = new QPushButton("Ok", this);
+    connect(okButton, &QPushButton::clicked, this, &Connector::initSlot);
     auto label =  new QLabel(this);
 
     clear();
-    QString msg = QString::fromStdString("You've joined the document.\nAddress: " + address + "\nToken: " + token);
-    label->setText(msg);
+    label->setText(message);
     addWidget(label);
-    addWidget(canselButton);
+    addWidget(okButton);
 }
