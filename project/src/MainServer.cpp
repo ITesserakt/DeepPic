@@ -5,6 +5,7 @@
 #include <utility>
 #include <thread>
 #include <nlohmann/json.hpp>
+#include <boost/log/trivial.hpp>
 
 using json = nlohmann::json;
 
@@ -40,12 +41,12 @@ void MainServer::runServer() {
 }
 
 void MainServer::handleAcceptConnection(std::shared_ptr<Connection> connection) {
+    BOOST_LOG_TRIVIAL(info) << "Accept new client to MainServer";
     connection->afterConnect();
 }
 
 void MainServer::onReadCb(std::shared_ptr<Connection> connection, std::string &&command) {
     auto command_parse = json::parse(command);
-    std::cout << "MainServer::onReadCb, command = " << command << std::endl;
     if (command_parse["target"] == "sharing_document") {
         createNewDocumentCommand_->do_command(command_parse, std::move(connection));
     }

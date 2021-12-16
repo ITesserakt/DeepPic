@@ -1,25 +1,24 @@
 #include <iostream>
 #include <nlohmann/json.hpp>
+#include <boost/log/trivial.hpp>
 
 #include "IManageCommand.h"
 #include "CommandConstructor.h"
 
 using json = nlohmann::json;
 
-IManageCommand::IManageCommand(command_t type_command) {
+IManageCommand::IManageCommand(command_t type_command, std::vector<std::shared_ptr<Connection>> *connections) {
     switch (type_command) {
         case GET_DOCUMENT:
-            letter_ = new GetDocument();
+            letter_ = new GetDocument(connections);
+            break;
         case SHARING_COMMAND:
-            letter_ = new SharingCommand();
+            letter_ = new SharingCommand(connections);
+            break;
         case CREATE_DOCUMENT:
             letter_ = new CreateNewDocumentCommand();
+            break;
     }
-}
-
-IManageCommand::IManageCommand(command_t type_command, std::vector<std::shared_ptr<Connection>> *connection) : IManageCommand(
-        type_command) {
-    connections_ = connection;
 }
 
 bool IManageCommand::do_command(json &command, std::shared_ptr<Connection> author) {
@@ -33,7 +32,6 @@ IManageCommand::~IManageCommand() {
 }
 
 bool GetDocument::do_command(json &command, std::shared_ptr<Connection> author) {
-    std::cerr << "we are in get document" << std::endl;
     if (command["target"] == "get_document" && !command.contains("status")) {
         if (command.contains("status") && command["status"] == "OK") {
             sendDocumentToNewClients(std::move(command["document"]));
@@ -67,8 +65,15 @@ void GetDocument::sendDocumentToNewClients(std::string &&document) {
     }
 }
 
+GetDocument::GetDocument(std::vector<std::shared_ptr<Connection>> *connections) {
+    connections_ = connections;
+}
+
+SharingCommand::SharingCommand(std::vector<std::shared_ptr<Connection>> *connections) {
+    connections_ = connections;
+}
+
 bool SharingCommand::do_command(json &command, std::shared_ptr<Connection> author) {
-    std::cerr << "we are in sharing command" << std::endl;
     for (auto &connection: *connections_) {
         if (author != connection) {
             std::cerr << "SharingCommand::do_command()" << std::endl;
@@ -81,7 +86,7 @@ bool SharingCommand::do_command(json &command, std::shared_ptr<Connection> autho
 }
 
 bool CreateNewDocumentCommand::do_command(json &command, std::shared_ptr<Connection> author) {
-    std::cerr << "we are in create new document" << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "Create new document";
     if (SharedDocumentServer::start_since_port > 6070) {
         return false;
     }
@@ -99,10 +104,11 @@ bool CreateNewDocumentCommand::do_command(json &command, std::shared_ptr<Connect
 }
 
 CreateNewDocumentCommand::~CreateNewDocumentCommand() {
+    BOOST_LOG_TRIVIAL(info) << "~CreateNewDocumentCommand()";
     std::cerr << "~CreateNewDocumentCommand()" << std::endl;
 }
 
-DocumentCommandBus::DocumentCommandBus(std::vector<std::shared_ptr<Connection>> *connection) : getDocumentCommand_(CREATE_DOCUMENT,
+DocumentCommandBus::DocumentCommandBus(std::vector<std::shared_ptr<Connection>> *connection) : getDocumentCommand_(GET_DOCUMENT,
                                                                                                                    connection),
                                                                                                sharingCommand_(SHARING_COMMAND,
                                                                                                                connection) {

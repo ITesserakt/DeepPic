@@ -1,6 +1,7 @@
 #pragma once
 
 #include <boost/asio.hpp>
+#include <boost/beast.hpp>
 #include <mutex>
 #include <condition_variable>
 #include <atomic>
@@ -38,10 +39,14 @@ private:
                       std::function<void(std::shared_ptr<Connection>)> onWriteCb);
 
     boost::asio::ip::tcp::socket sock_;
+
     std::function<void(std::shared_ptr<Connection>, std::string &&)> onReadCb_;
     std::function<void(std::shared_ptr<Connection>)> onDeleteCb_;
-    char readBuf_[BUFFER_LENGTH];
-    char sendBuf_[BUFFER_LENGTH];
+
+    boost::beast::flat_buffer buffer_{BUFFER_LENGTH};
+
+    boost::beast::http::request<boost::beast::http::string_body> request_;
+    boost::beast::http::response<boost::beast::http::string_body> response_;
 
     std::mutex writeMutex_;
     std::condition_variable writeCv_;

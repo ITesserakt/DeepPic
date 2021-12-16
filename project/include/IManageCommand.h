@@ -16,9 +16,7 @@ typedef enum {
 
 class IManageCommand {
 public:
-    IManageCommand(command_t type_command);
-
-    IManageCommand(command_t type_command, std::vector<std::shared_ptr<Connection>> *connection);
+    IManageCommand(command_t type_command, std::vector<std::shared_ptr<Connection>> *connection = nullptr);
 
     IManageCommand(const IManageCommand &) = delete;
 
@@ -29,9 +27,7 @@ public:
     ~IManageCommand();
 
 protected:
-    IManageCommand() : letter_(NULL) {}
-
-    std::vector<std::shared_ptr<Connection>> *connections_ = nullptr;
+    IManageCommand() : letter_(nullptr) {}
 
 private:
     IManageCommand *letter_;
@@ -50,7 +46,7 @@ public:
 private:
     friend class IManageCommand;
 
-    GetDocument() = default;
+    explicit GetDocument(std::vector<std::shared_ptr<Connection>> *connections);
 
     void getDocumentFromClient();
 
@@ -59,6 +55,8 @@ private:
     void sendDocumentToNewClients(std::string &&document);
 
     std::vector<std::shared_ptr<Connection>> clientsToGetDocument_;
+
+    std::vector<std::shared_ptr<Connection>> *connections_ = nullptr;
 };
 
 class SharingCommand : public IManageCommand {
@@ -74,7 +72,9 @@ public:
 private:
     friend class IManageCommand;
 
-    SharingCommand() = default;
+    explicit SharingCommand(std::vector<std::shared_ptr<Connection>> *connections);
+
+    std::vector<std::shared_ptr<Connection>> *connections_ = nullptr;
 };
 
 class CreateNewDocumentCommand : public IManageCommand {

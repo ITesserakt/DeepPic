@@ -5,7 +5,7 @@
 #include "SharedDocumentServer.h"
 #include "IManageCommand.h"
 #include "CommandConstructor.h"
-#include <boost/log/common.hpp>
+#include <boost/log/trivial.hpp>
 
 SharedDocumentServer::SharedDocumentServer(boost::asio::io_context &service) : server_(start_since_port++, service,
                                                                                        ServerCallbacks{
@@ -28,11 +28,15 @@ SharedDocumentServer::SharedDocumentServer(boost::asio::io_context &service) : s
 }
 
 void SharedDocumentServer::generateAuthToken() {
-    authToken_ = "dummy_aboba";
+    static std::vector<char> syms = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
+                                     'u', 'v', 'w', 'x', 'y', 'z', '_', '-', '$', '@'};
+    static int token_length = 20;
+    for (int i = 0; i < token_length; ++i) {
+        authToken_ += syms[rand() % syms.size()];
+    }
 }
 
 void SharedDocumentServer::startShared() {
-    std::cerr << "startShared()" << std::endl;
     server_.runServer();
 }
 
@@ -43,8 +47,7 @@ bool SharedDocumentServer::checkAuthToken(std::string &token) {
 
 
 void SharedDocumentServer::onReadCb(std::shared_ptr<Connection> author, std::string &&command) {
-    std::cout << "We are in onReadCb" << std::endl;
-    std::cout << command << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "command from user: " << command;
     //std::string command_cpy = command;
     //documentCommandBus_->do_command(std::move(command_cpy), author);
     auto command_parse = json::parse(command);
@@ -53,6 +56,7 @@ void SharedDocumentServer::onReadCb(std::shared_ptr<Connection> author, std::str
             std::string response_dump = CommandConstructor::authServer("OK", getAuthToken(), std::string("127.0.0.1"), getPort()).dump();
             author->setAuth(true);
             author->write(response_dump);
+            BOOST_LOG_TRIVIAL(info) << "Connect new client to document";
         } else {
             std::string response_dump = CommandConstructor::authServer("FAIL", getAuthToken(), std::string("127.0.0.1"), getPort()).dump();
             author->setAuth(false);
@@ -74,7 +78,7 @@ void SharedDocumentServer::onDeleteConnection(std::shared_ptr<Connection> connec
         pos++;
     }
     try {
-        std::cerr << "delete ServerConnection" << std::endl;
+        BOOST_LOG_TRIVIAL(info) << "Delete client connection";
         (*pos)->stop();
         connections_.erase(pos);
     } catch (...) {
@@ -95,7 +99,7 @@ SharedDocumentServer::~SharedDocumentServer() {
 }
 
 void SharedDocumentServer::handleAcceptConnection(std::shared_ptr<Connection> connection) {
-    std::cerr << "we are in SharedDocumentServer::handleAcceptConnection" << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "Accept new client to document";
     connections_.push_back(connection);
     connection->afterConnect();
 }

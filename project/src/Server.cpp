@@ -29,7 +29,7 @@ int Server::getPort() {
 
 void Server::startAcceptConnections() {
     std::shared_ptr<Connection> connection(
-            new Connection(static_cast<boost::asio::io_context &>(acceptor_.get_executor().context()), callbacks_.onReadCb_));
+            new Connection(static_cast<boost::asio::io_context &>(acceptor_.get_executor().context()), callbacks_.onReadCb_, callbacks_.onDeleteCb_));
     acceptor_.async_accept(connection->getSock(), boost::bind(&Server::handleAcceptConnection, this,
                                                               connection, boost::asio::placeholders::error));
     std::cerr << "start accept connections" << std::endl;

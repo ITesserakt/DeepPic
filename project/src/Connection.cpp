@@ -1,5 +1,6 @@
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
+#include <boost/log/trivial.hpp>
 #include <iostream>
 
 #include "Connection.h"
@@ -12,7 +13,7 @@ Connection::Connection(boost::asio::io_context &service, std::function<void(std:
 }
 
 Connection::~Connection() {
-    std::cout << "~Connection()" << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "~Connection()";
 }
 
 void Connection::afterConnect() {
@@ -20,12 +21,10 @@ void Connection::afterConnect() {
 }
 
 void Connection::read() {
-    std::cerr << "we are in Connection::read" << std::endl;
-    boost::asio::async_read(sock_, boost::asio::buffer(readBuf_),
-                            boost::bind(&Connection::checkEndOfRead, shared_from_this(), boost::asio::placeholders::error,
-                                        boost::asio::placeholders::bytes_transferred),
-                            boost::bind(&Connection::readHandler, shared_from_this(), boost::asio::placeholders::error,
-                                        boost::asio::placeholders::bytes_transferred));
+    boost::beast::http::async_read(sock_, buffer_, request_,
+                                   [self = shared_from_this()](boost::system::error_code err, size_t bytes_transferred) {
+                                       self->readHandler(err, bytes_transferred);
+                                   });
 }
 
 void Connection::write(std::string &command, std::function<void(std::shared_ptr<Connection>)> onWriteCb) {
@@ -34,42 +33,38 @@ void Connection::write(std::string &command, std::function<void(std::shared_ptr<
     writeCv_.wait(ulock, [this]() { return bool(canWrite_); });
     canWrite_ = false;
 
-    for (int i = 0; i < command.length(); ++i) {
-        sendBuf_[i] = command[i];
-    }
-    std::string end_str(END_STR);
-    for (int i = command.length(); i < command.length() + end_str.length(); ++i) {
-        sendBuf_[i] = end_str[i - command.length()];
-    }
+    response_.clear();
 
-    sock_.async_write_some(boost::asio::buffer(sendBuf_, command.length() + end_str.length()),
-                           boost::bind(&Connection::writeHandler, shared_from_this(), _1, _2, onWriteCb));
+    response_.keep_alive(request_.keep_alive());
+    response_.version(request_.version());
+    response_.result(boost::beast::http::status::ok);
+    response_.body() = command;
+
+    response_.prepare_payload();
+
+    boost::beast::http::async_write(sock_, response_,
+                                    [self = shared_from_this(), onWriteCb](boost::system::error_code err, size_t bytes_transferred) {
+                                        self->writeHandler(err, bytes_transferred, onWriteCb);
+                                    });
 }
 
 
 void Connection::readHandler(const boost::system::error_code &err, std::size_t bytes_transferred) {
     if (err) {
-        std::cerr << "Connection::readHandler error" << std::endl;
+        std::cout << request_ << std::endl;
+        BOOST_LOG_TRIVIAL(error) << "Error while read from client";
         if (onDeleteCb_) {
             onDeleteCb_(shared_from_this());
         }
         return;
     }
 
-    onReadCb_(shared_from_this(), std::string(readBuf_, readBuf_ + bytes_transferred));
-    memset(readBuf_, 0, bytes_transferred);
+    onReadCb_(shared_from_this(), request_.body().data());
+
+    request_.clear();
+    request_.body().clear();
+
     read();
-}
-
-
-std::size_t Connection::checkEndOfRead(const boost::system::error_code &err, std::size_t bytes_transferred) {
-    if (bytes_transferred > 2 &&
-        readBuf_[bytes_transferred - 1] == '\n' && readBuf_[bytes_transferred - 2] == '\r')
-        //std::string(readBuf_ + bytes_transferred - 1 - std::strlen(END_STR), readBuf_ + bytes_transferred - 1) == std::string(END_STR))
-    {
-        return 0;
-    }
-    return 1;
 }
 
 
@@ -84,7 +79,6 @@ void Connection::writeHandler(const boost::system::error_code &err, std::size_t 
         }
         return;
     }
-    std::cerr << "we are on Connection::writeHandler" << std::endl;
 
     if (onWriteCb) {
         onWriteCb(shared_from_this());
