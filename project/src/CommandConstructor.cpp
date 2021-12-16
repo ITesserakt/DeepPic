@@ -22,9 +22,12 @@ json CommandConstructor::authClient(std::string &&auth_token) {
     return command;
 }
 
-json CommandConstructor::authServer(std::string &&status) {
+json CommandConstructor::authServer(std::string &&status, std::string &&token, std::string &&address, int port) {
     json command = {{"status", status},
-                    {"target", "auth"}};
+                    {"target", "auth"},
+                    {"auth_token", token},
+                    {"port", port},
+                    {"address", address}};
 
     return command;
 }

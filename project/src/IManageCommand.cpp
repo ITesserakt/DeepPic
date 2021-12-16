@@ -71,6 +71,7 @@ bool SharingCommand::do_command(json &command, std::shared_ptr<Connection> autho
     std::cerr << "we are in sharing command" << std::endl;
     for (auto &connection: *connections_) {
         if (author != connection) {
+            std::cerr << "SharingCommand::do_command()" << std::endl;
             std::string command_dump = command.dump();
             connection->write(command_dump);
         }
@@ -81,6 +82,9 @@ bool SharingCommand::do_command(json &command, std::shared_ptr<Connection> autho
 
 bool CreateNewDocumentCommand::do_command(json &command, std::shared_ptr<Connection> author) {
     std::cerr << "we are in create new document" << std::endl;
+    if (SharedDocumentServer::start_since_port > 6070) {
+        return false;
+    }
 
     std::shared_ptr<SharedDocumentServer> shared_document(
             new SharedDocumentServer(static_cast<boost::asio::io_context &>(author->getSock().get_executor().context())));

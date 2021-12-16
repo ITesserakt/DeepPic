@@ -12,7 +12,7 @@ public:
 
     static json authClient(std::string &&auth_token);
 
-    static json authServer(std::string &&status);
+    static json authServer(std::string &&status, std::string &&token, std::string &&address, int port);
 
     static json getDocumentClient();
 

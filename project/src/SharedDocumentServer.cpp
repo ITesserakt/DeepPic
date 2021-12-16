@@ -45,15 +45,16 @@ bool SharedDocumentServer::checkAuthToken(std::string &token) {
 void SharedDocumentServer::onReadCb(std::shared_ptr<Connection> author, std::string &&command) {
     std::cout << "We are in onReadCb" << std::endl;
     std::cout << command << std::endl;
-    documentCommandBus_->do_command(std::move(command), author);
+    //std::string command_cpy = command;
+    //documentCommandBus_->do_command(std::move(command_cpy), author);
     auto command_parse = json::parse(command);
-    if (command_parse["target"] == "auth") {
+    if (command_parse["target"] == "auth" && !author->getAuth()) {
         if (command_parse["auth_token"] == getAuthToken()) {
-            std::string response_dump = CommandConstructor::authServer("OK").dump();
+            std::string response_dump = CommandConstructor::authServer("OK", getAuthToken(), std::string("127.0.0.1"), getPort()).dump();
             author->setAuth(true);
             author->write(response_dump);
         } else {
-            std::string response_dump = CommandConstructor::authServer("FAIL").dump();
+            std::string response_dump = CommandConstructor::authServer("FAIL", getAuthToken(), std::string("127.0.0.1"), getPort()).dump();
             author->setAuth(false);
             // если пользователь послал не верный аутентификационный токен - удаляем его
             author->write(response_dump, [](std::shared_ptr<Connection> connection) { connection->stop(); });

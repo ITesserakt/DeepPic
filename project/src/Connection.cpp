@@ -42,7 +42,6 @@ void Connection::write(std::string &command, std::function<void(std::shared_ptr<
         sendBuf_[i] = end_str[i - command.length()];
     }
 
-    std::cout << "send str = " << std::string(sendBuf_, sendBuf_ + command.length() + end_str.length()) << std::endl;
     sock_.async_write_some(boost::asio::buffer(sendBuf_, command.length() + end_str.length()),
                            boost::bind(&Connection::writeHandler, shared_from_this(), _1, _2, onWriteCb));
 }
@@ -57,8 +56,8 @@ void Connection::readHandler(const boost::system::error_code &err, std::size_t b
         return;
     }
 
-    std::cerr << "read = " << std::string(readBuf_, readBuf_ + bytes_transferred) << std::endl;
     onReadCb_(shared_from_this(), std::string(readBuf_, readBuf_ + bytes_transferred));
+    memset(readBuf_, 0, bytes_transferred);
     read();
 }
 
