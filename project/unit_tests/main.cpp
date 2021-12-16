@@ -6,7 +6,7 @@
 
 #include "Server.h"
 #include "Settings.h"
-#include "SharedDocument.h"
+#include "SharedDocumentServer.h"
 
 using namespace boost::asio;
 
@@ -37,8 +37,8 @@ protected:
 class TestSharingDocument : public ::testing::Test {
 protected:
     void SetUp() {
-        SharedDocument::start_since_port = 8001;
-        document_ = new SharedDocument();
+        SharedDocumentServer::start_since_port = 8001;
+        document_ = new SharedDocumentServer();
         document_->startShared();
         auth_token_ = document_->getAuthToken();
         port_ = document_->getPort();
@@ -48,7 +48,7 @@ protected:
         delete document_;
     }
 
-    SharedDocument *document_;
+    SharedDocumentServer *document_;
     std::string auth_token_;
     int port_;
     io_service service_;

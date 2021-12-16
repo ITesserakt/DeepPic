@@ -1,6 +1,6 @@
 #pragma once
 
-#define BUFFER_LENGTH 1024
+#define BUFFER_LENGTH 10000
 #define END_STR "\r\n"
 #define MAX_DOCUMENT_LENGTH 2048
 
