@@ -24,7 +24,9 @@
 ```json
 {
   "target": "auth",
-  "auth_token": "dummy_aboba"
+  "auth_token": "dummy_aboba",
+  "address": "127.0.0.1",
+  "port": 5555
 }
 ```
 
