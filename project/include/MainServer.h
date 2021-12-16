@@ -2,7 +2,7 @@
 
 #include "Server.h"
 #include "Connection.h"
-#include "IManageCommand.h"
+#include "Command.h"
 
 class MainServer {
 public:
@@ -16,6 +16,6 @@ private:
 
     boost::asio::io_context service_;
     Server server_;
-    IManageCommand *createNewDocumentCommand_;
+    Command *createNewDocumentCommand_;
     int countThreads_;
 };

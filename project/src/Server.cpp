@@ -1,6 +1,7 @@
 #include <iostream>
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
+#include <boost/log/trivial.hpp>
 #include <utility>
 
 #include "Server.h"
@@ -13,7 +14,7 @@ Server::Server(int port, boost::asio::io_context &service, ServerCallbacks &&cal
 }
 
 void Server::runServer() {
-    std::cerr << "runServer()" << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "Server run";
     boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::tcp::v4(), port_);
     acceptor_.open(endpoint.protocol());
     acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
@@ -32,7 +33,7 @@ void Server::startAcceptConnections() {
             new Connection(static_cast<boost::asio::io_context &>(acceptor_.get_executor().context()), callbacks_.onReadCb_, callbacks_.onDeleteCb_));
     acceptor_.async_accept(connection->getSock(), boost::bind(&Server::handleAcceptConnection, this,
                                                               connection, boost::asio::placeholders::error));
-    std::cerr << "start accept connections" << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "Start accept connections";
 }
 
 void Server::handleAcceptConnection(std::shared_ptr<Connection> connection, const boost::system::error_code &err) {

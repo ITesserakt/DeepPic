@@ -10,7 +10,7 @@ find_package(nlohmann_json 3.2.0 REQUIRED)
 link_directories(${Boost_LIBRARY_DIR})
 
 include_directories(project/include ${Boost_INCLUDE_DIRS})
-aux_source_directory(project/src SRCR)
-add_executable(boost_asio_async_server ${SRCR})
+aux_source_directory(project/src SRC)
+add_executable(boost_asio_async_server ${SRC})
 
 target_link_libraries(boost_asio_async_server boost_thread pthread ${BOOST_LIBRARIES} nlohmann_json::nlohmann_json Boost::log Boost::log_setup)

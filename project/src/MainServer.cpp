@@ -1,5 +1,5 @@
 #include "MainServer.h"
-#include "IManageCommand.h"
+#include "Command.h"
 
 #include <iostream>
 #include <utility>
@@ -21,7 +21,7 @@ MainServer::MainServer(int port, int countThreads) : service_(), server_(port, s
                                                                                  }, {}}
 ),
                                                      countThreads_(countThreads) {
-    createNewDocumentCommand_ = new IManageCommand(CREATE_DOCUMENT);
+    createNewDocumentCommand_ = new Command(CREATE_DOCUMENT);
 }
 
 void MainServer::runServer() {

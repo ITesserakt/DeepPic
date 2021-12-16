@@ -33,8 +33,6 @@ private:
 
     void readHandler(const boost::system::error_code &err, std::size_t bytes_transferred);
 
-    std::size_t checkEndOfRead(const boost::system::error_code &err, std::size_t bytes_transferred);
-
     void writeHandler(const boost::system::error_code &err, std::size_t bytes_transferred,
                       std::function<void(std::shared_ptr<Connection>)> onWriteCb);
 

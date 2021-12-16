@@ -14,26 +14,26 @@ typedef enum {
     CREATE_DOCUMENT = 0x04
 } command_t;
 
-class IManageCommand {
+class Command {
 public:
-    IManageCommand(command_t type_command, std::vector<std::shared_ptr<Connection>> *connection = nullptr);
+    Command(command_t type_command, std::vector<std::shared_ptr<Connection>> *connection = nullptr);
 
-    IManageCommand(const IManageCommand &) = delete;
+    Command(const Command &) = delete;
 
-    IManageCommand &operator=(IManageCommand &) = delete;
+    Command &operator=(Command &) = delete;
 
     virtual bool do_command(json &command, std::shared_ptr<Connection> author);
 
-    ~IManageCommand();
+    ~Command();
 
 protected:
-    IManageCommand() : letter_(nullptr) {}
+    Command() : letter_(nullptr) {}
 
 private:
-    IManageCommand *letter_;
+    Command *letter_;
 };
 
-class GetDocument : public IManageCommand {
+class GetDocument : public Command {
 public:
     virtual bool do_command(json &command, std::shared_ptr<Connection> author) override;
 
@@ -44,7 +44,7 @@ public:
     ~GetDocument() = default;
 
 private:
-    friend class IManageCommand;
+    friend class Command;
 
     explicit GetDocument(std::vector<std::shared_ptr<Connection>> *connections);
 
@@ -59,7 +59,7 @@ private:
     std::vector<std::shared_ptr<Connection>> *connections_ = nullptr;
 };
 
-class SharingCommand : public IManageCommand {
+class SharingCommand : public Command {
 public:
     virtual bool do_command(json &command, std::shared_ptr<Connection> author) override;
 
@@ -70,21 +70,21 @@ public:
     ~SharingCommand() = default;
 
 private:
-    friend class IManageCommand;
+    friend class Command;
 
     explicit SharingCommand(std::vector<std::shared_ptr<Connection>> *connections);
 
     std::vector<std::shared_ptr<Connection>> *connections_ = nullptr;
 };
 
-class CreateNewDocumentCommand : public IManageCommand {
+class CreateNewDocumentCommand : public Command {
 public:
     virtual bool do_command(json &command, std::shared_ptr<Connection> author) override;
 
     ~CreateNewDocumentCommand();
 
 private:
-    friend class IManageCommand;
+    friend class Command;
 
     CreateNewDocumentCommand() = default;
 
@@ -96,6 +96,6 @@ public:
     explicit DocumentCommandBus(std::vector<std::shared_ptr<Connection>> *connection);
     bool do_command(std::string &&command, std::shared_ptr<Connection> author);
 private:
-    IManageCommand sharingCommand_;
-    IManageCommand getDocumentCommand_;
+    Command sharingCommand_;
+    Command getDocumentCommand_;
 };

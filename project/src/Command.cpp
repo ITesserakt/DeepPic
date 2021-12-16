@@ -2,12 +2,12 @@
 #include <nlohmann/json.hpp>
 #include <boost/log/trivial.hpp>
 
-#include "IManageCommand.h"
+#include "Command.h"
 #include "CommandConstructor.h"
 
 using json = nlohmann::json;
 
-IManageCommand::IManageCommand(command_t type_command, std::vector<std::shared_ptr<Connection>> *connections) {
+Command::Command(command_t type_command, std::vector<std::shared_ptr<Connection>> *connections) {
     switch (type_command) {
         case GET_DOCUMENT:
             letter_ = new GetDocument(connections);
@@ -21,13 +21,13 @@ IManageCommand::IManageCommand(command_t type_command, std::vector<std::shared_p
     }
 }
 
-bool IManageCommand::do_command(json &command, std::shared_ptr<Connection> author) {
+bool Command::do_command(json &command, std::shared_ptr<Connection> author) {
     letter_->do_command(command, author);
 
     return true;
 }
 
-IManageCommand::~IManageCommand() {
+Command::~Command() {
     delete letter_;
 }
 
@@ -104,8 +104,6 @@ bool CreateNewDocumentCommand::do_command(json &command, std::shared_ptr<Connect
 }
 
 CreateNewDocumentCommand::~CreateNewDocumentCommand() {
-    BOOST_LOG_TRIVIAL(info) << "~CreateNewDocumentCommand()";
-    std::cerr << "~CreateNewDocumentCommand()" << std::endl;
 }
 
 DocumentCommandBus::DocumentCommandBus(std::vector<std::shared_ptr<Connection>> *connection) : getDocumentCommand_(GET_DOCUMENT,

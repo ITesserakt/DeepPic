@@ -3,7 +3,7 @@
 #include <iostream>
 
 #include "SharedDocumentServer.h"
-#include "IManageCommand.h"
+#include "Command.h"
 #include "CommandConstructor.h"
 #include <boost/log/trivial.hpp>
 
@@ -41,7 +41,7 @@ void SharedDocumentServer::startShared() {
 }
 
 
-bool SharedDocumentServer::checkAuthToken(std::string &token) {
+bool SharedDocumentServer::checkAuthToken(std::string &&token) {
     return token == authToken_;
 }
 
@@ -52,18 +52,18 @@ void SharedDocumentServer::onReadCb(std::shared_ptr<Connection> author, std::str
     //documentCommandBus_->do_command(std::move(command_cpy), author);
     auto command_parse = json::parse(command);
     if (command_parse["target"] == "auth" && !author->getAuth()) {
-        if (command_parse["auth_token"] == getAuthToken()) {
+        if (checkAuthToken(command_parse["auth_token"])) {
             std::string response_dump = CommandConstructor::authServer("OK", getAuthToken(), std::string("127.0.0.1"), getPort()).dump();
             author->setAuth(true);
             author->write(response_dump);
             BOOST_LOG_TRIVIAL(info) << "Connect new client to document";
         } else {
-            std::string response_dump = CommandConstructor::authServer("FAIL", getAuthToken(), std::string("127.0.0.1"), getPort()).dump();
+            std::string response_dump = CommandConstructor::authServer("FAIL", "", std::string("127.0.0.1"), getPort()).dump();
             author->setAuth(false);
             // если пользователь послал не верный аутентификационный токен - удаляем его
             author->write(response_dump, [](std::shared_ptr<Connection> connection) { connection->stop(); });
         }
-    } else {
+    } else if (author->getAuth()) {
         documentCommandBus_->do_command(std::move(command), author);
     }
 }

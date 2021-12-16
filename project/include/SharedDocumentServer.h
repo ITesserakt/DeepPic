@@ -31,7 +31,7 @@ private:
 
     void onDeleteConnection(std::shared_ptr<Connection> connection);
 
-    bool checkAuthToken(std::string &token);
+    bool checkAuthToken(std::string &&token);
 
     void onReadCb(std::shared_ptr<Connection> author, std::string &&command);
 

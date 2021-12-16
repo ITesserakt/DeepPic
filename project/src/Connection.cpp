@@ -51,7 +51,6 @@ void Connection::write(std::string &command, std::function<void(std::shared_ptr<
 
 void Connection::readHandler(const boost::system::error_code &err, std::size_t bytes_transferred) {
     if (err) {
-        std::cout << request_ << std::endl;
         BOOST_LOG_TRIVIAL(error) << "Error while read from client";
         if (onDeleteCb_) {
             onDeleteCb_(shared_from_this());
