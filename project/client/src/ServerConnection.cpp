@@ -6,23 +6,30 @@
 ServerConnection::ServerConnection(std::string &&url, int port, ServerConnectionCallbacks &&callbacks) : socket_(service_),
                                                                                                          serverUrl_(std::move(url)),
                                                                                                          serverPort_(port),
-                                                                                                         callbacks_(std::move(callbacks)) {
+                                                                                                         callbacks_(std::move(callbacks)),
+                                                                                                         resolver_(service_) {
+}
+
+void ServerConnection::on_resolve(boost::system::error_code err, boost::asio::ip::tcp::resolver::results_type result) {
+    boost::asio::async_connect(socket_, result.begin(), result.end(),
+                               std::bind(&ServerConnection::on_connect, this, std::placeholders::_1));
 }
 
 void ServerConnection::connectionToServer() {
-    boost::asio::ip::tcp::endpoint ep(boost::asio::ip::address::from_string(serverUrl_), serverPort_);
-    socket_.connect(ep);
-    read();
+    resolver_.async_resolve(serverUrl_, std::to_string(serverPort_), std::bind(&ServerConnection::on_resolve, this,
+                                                                               std::placeholders::_1, std::placeholders::_2));
+}
+
+void ServerConnection::on_connect(boost::system::error_code err) {
+    if (!err) {
+        read();
+    }
 }
 
 void ServerConnection::read() {
-    boost::asio::async_read(socket_, boost::asio::buffer(readBuf_),
-                            [this](const boost::system::error_code &err, std::size_t bytes_transferred) -> size_t {
-                                return this->checkEndOfRead(err, bytes_transferred);
-                            }, [this](const boost::system::error_code &err, std::size_t bytes_transferred) {
-                this->readHandler(err, bytes_transferred);
-            });
-
+    boost::beast::http::async_read(socket_, buffer_, response_, [this](const boost::system::error_code err, size_t bytes_transferred) {
+        this->readHandler(err, bytes_transferred);
+    });
 }
 
 void ServerConnection::readHandler(const boost::system::error_code &err, size_t bytes_transferred) {
@@ -32,8 +39,11 @@ void ServerConnection::readHandler(const boost::system::error_code &err, size_t 
     }
 
     if (callbacks_.onReadCb) {
-        callbacks_.onReadCb(std::string(readBuf_, readBuf_ + bytes_transferred));
+        callbacks_.onReadCb(response_.body().data());
     }
+
+    response_.clear();
+    response_.body().clear();
 
     read();
 }
@@ -53,17 +63,20 @@ void ServerConnection::write(std::string &&message) {
     writeCv_.wait(ulock, [this]() { return bool(canWrite_); });
     canWrite_ = false;
 
-    for (int i = 0; i < message.length(); ++i) {
-        sendBuf_[i] = message[i];
-    }
-    std::string end_str(END_STR);
-    for (int i = message.length(); i < message.length() + end_str.length(); ++i) {
-        sendBuf_[i] = end_str[i - message.length()];
-    }
+    request_.clear();
+    request_.body().clear();
+
+    request_.method(boost::beast::http::verb::post);
+    request_.target("/");
+    request_.body() = message;
+    request_.prepare_payload();
 
     std::cout << "ServerConnection::write()" << std::endl;
-    boost::asio::async_write(socket_, boost::asio::buffer(sendBuf_, message.length() + end_str.length()),
-                             [this](const boost::system::error_code &err, size_t bytes_transferred) { this->writeHandler(err); });
+
+    boost::beast::http::async_write(socket_, request_, [this](boost::system::error_code err, size_t bytes_transferred) {
+        boost::ignore_unused(bytes_transferred);
+        this->writeHandler(err);
+    });
 }
 
 void ServerConnection::writeHandler(const boost::system::error_code &err) {
@@ -82,15 +95,6 @@ void ServerConnection::writeHandler(const boost::system::error_code &err) {
     writeCv_.notify_one();
 }
 
-std::size_t ServerConnection::checkEndOfRead(const boost::system::error_code &err, std::size_t bytes_transferred) {
-    if (bytes_transferred > 2 &&
-        readBuf_[bytes_transferred - 1] == '\n' && readBuf_[bytes_transferred - 2] == '\r')
-        //std::string(readBuf_ + bytes_transferred - 1 - std::strlen(END_STR), readBuf_ + bytes_transferred - 1) == std::string(END_STR))
-    {
-        return 0;
-    }
-    return 1;
-}
 
 void ServerConnection::setServerUrl(std::string &&url) {
     serverUrl_ = url;

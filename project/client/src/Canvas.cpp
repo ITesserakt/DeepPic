@@ -8,7 +8,6 @@
 
 Canvas::Canvas(QWidget *parent) :
     QGraphicsView(parent) {
-//    default_width = scene().wr
 }
 
 void Canvas::openImageSlot() {

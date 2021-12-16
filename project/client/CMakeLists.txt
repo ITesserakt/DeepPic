@@ -20,10 +20,13 @@ if (WITH_SANITIZER)
     add_link_options(-fsanitize=address)
 endif ()
 
-set(SOURCES src/MainWindow.cpp  src/PaintScene.cpp src/Palette.cpp src/Changer.cpp
-        src/ToolsPanel.cpp src/ParametersPanel.cpp src/Brush.cpp src/Canvas.cpp src/ServerConnection.cpp)
+
+set(SOURCES src/MainWindow.cpp src/PaintScene.cpp src/Palette.cpp src/Changer.cpp
+        src/ToolsPanel.cpp src/ParametersPanel.cpp src/Brush.cpp src/Canvas.cpp
+        src/Connector.cpp src/ServerConnection.cpp)
 set(HEADER_FILES include/Palette.h include/MainWindow.h include/PaintScene.h include/Changer.h
-        include/ToolsPanel.h include/ParametersPanel.h include/Brush.h include/Canvas.h include/ServerConnection.h ${Boost_INCLUDE_DIR})
+        include/ToolsPanel.h include/ParametersPanel.h include/Brush.h include/Canvas.h
+        include/Connector.h include/ServerConnection.h ${Boost_INCLUDE_DIR})
 
 #include_directories(include ${Boost_INCLUDE_DIR})
 #aux_source_directory(src SRC)

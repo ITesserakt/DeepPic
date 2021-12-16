@@ -1,13 +1,14 @@
 #pragma once
 
 #include <boost/asio.hpp>
+#include <boost/beast.hpp>
 #include <functional>
 #include <string>
 #include <mutex>
 #include <condition_variable>
 #include <atomic>
 
-#define BUFFER_LENGTH 1024
+#define BUFFER_LENGTH 10000
 #define END_STR "\r\n"
 
 #define SERVER_PORT 8080
@@ -41,14 +42,24 @@ public:
 
     void setServerPort(int port);
 
+    std::string getServerUrl() {
+        return serverUrl_;
+    }
+
+    int getServerPort() {
+        return serverPort_;
+    };
+
 private:
+    void on_resolve(boost::system::error_code err, boost::asio::ip::tcp::resolver::results_type result);
+
+    void on_connect(boost::system::error_code err);
+
     void read();
 
     void connectionToServer();
 
     void readHandler(const boost::system::error_code &err, size_t bytes_transferred);
-
-    std::size_t checkEndOfRead(const boost::system::error_code &err, std::size_t bytes_transferred);
 
     void writeHandler(const boost::system::error_code &err);
 
@@ -65,7 +76,10 @@ private:
     std::condition_variable writeCv_;
     std::atomic<bool> canWrite_{true};
 
-    char readBuf_[BUFFER_LENGTH];
-    char sendBuf_[BUFFER_LENGTH];
+    boost::beast::flat_buffer buffer_{BUFFER_LENGTH};
+    boost::beast::http::request<boost::beast::http::string_body> request_;
+    boost::beast::http::response<boost::beast::http::string_body> response_;
+    boost::asio::ip::tcp::resolver resolver_;
+
 };
 

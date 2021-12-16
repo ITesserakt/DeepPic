@@ -2,6 +2,7 @@
 #include "Changer.h"
 #include "Palette.h"
 #include "QGraphicsView"
+#include "Connector.h"
 
 #include <QAction>
 #include <QIcon>
@@ -31,6 +32,9 @@ MainWindow::MainWindow(QWidget *parent) :
         QMainWindow(parent) {
 
     scene = new PaintScene(this);
+    connect(scene, &PaintScene::writeCurveSignal, this, &MainWindow::writeSlot);
+    connect(this, &MainWindow::addCurve, scene, &PaintScene::readCurveSlot);
+
     canvas = new Canvas;
     canvas->setScene(scene);
 
@@ -71,15 +75,22 @@ MainWindow::MainWindow(QWidget *parent) :
     addToolBar(parameters_panel);
     parameters_panel->setFixedHeight(40);
 
-    auto *right_panel = new QToolBar;
-    addToolBar(Qt::RightToolBarArea, right_panel);
-    right_panel->setFixedWidth(400);
+    connector = new Connector(this);
+    addToolBar(Qt::RightToolBarArea, connector);
+    connector->setFixedWidth(400);
+
+    connect(connector, &Connector::writeSignal, this, &MainWindow::writeSlot);
+    connect(this, &MainWindow::failedShareSignal, connector, &Connector::failedShareSlot);
+    connect(this, &MainWindow::failedConnectSignal, connector, &Connector::failedConnectSlot);
+    connect(this, &MainWindow::successfulConnectSignal, connector, &Connector::successfulConnectSlot);
+    connect(this, &MainWindow::successfulShareSignal, connector, &Connector::successfulShareSlot);
+
 
     toolsPanel = new ToolsPanel;
     addToolBar(Qt::LeftToolBarArea, toolsPanel);
 
     connect(toolsPanel, &ToolsPanel::BrushTriggered, this, &MainWindow::slotBrush);
-    connect(this, &MainWindow::TemporarySignal, scene, &PaintScene::PaintCurveSlot);
+    //connect(this, &MainWindow::addCurve, scene, &PaintScene::PaintCurveSlot);
     //connect(scene, &PaintScene::PushCurve, this, &MainWindow::TemporaryWriterSlot);
 
 
@@ -89,23 +100,19 @@ MainWindow::MainWindow(QWidget *parent) :
     timer = new QTimer();
     connect(timer, &QTimer::timeout, this, &MainWindow::slotTimer);
     timer->start(500);
-
     serverConnection_ = std::make_unique<ServerConnection>(std::string("127.0.0.1"), 8080, ServerConnectionCallbacks{
             [this](std::string &&message) { this->execute(std::move(message)); },
             {}
     });
 
     serverConnection_->start();
-
-    json test_target = {{"target", "sharing_document"}};
-    serverConnection_->write(test_target.dump());
 }
 
 MainWindow::~MainWindow() {
 }
 
 void MainWindow::slotTimer() {
-    //scene->setSceneRect(0, 0, qGraphicsView->width() - 20, qGraphicsView->height() - 20);
+    scene->setSceneRect(0, 0, canvas->width() - 20, canvas->height() - 20);
 }
 
 void MainWindow::slotBrush(qreal brushSize, const QColor &brushColor) {
@@ -133,44 +140,88 @@ void MainWindow::slotBrush(qreal brushSize, const QColor &brushColor) {
     scene->ChangeBrushStatus();
 }
 
-void MainWindow::executeBrush(const Curve &curve) {
-    if (curve.brush_size < 0) {
-        throw std::invalid_argument("Invalid size");
-    }
-    if (curve.color_red < 0 || curve.color_red > 255) {
-        throw std::invalid_argument("Invalid red color");
-    }
-    if (curve.color_green < 0 || curve.color_green > 255) {
-        throw std::invalid_argument("Invalid green color");
-    }
-    if (curve.color_blue < 0 || curve.color_blue > 255) {
-        throw std::invalid_argument("Invalid blue color");
-    }
-    if (curve.coords.size() < 2) {
-        throw std::invalid_argument("Invalid curve size");
-    }
-    emit(TemporarySignal(curve));
-}
 
+//void MainWindow::executeBrush(const Curve& curve) {
+//    if (curve.brush_size < 0) {
+//        throw std::invalid_argument("Invalid size");
+//    }
+//    if (curve.color_red < 0 || curve.color_red > 255) {
+//        throw std::invalid_argument("Invalid red color");
+//    }
+//    if (curve.color_green < 0 || curve.color_green > 255) {
+//        throw std::invalid_argument("Invalid green color");
+//    }
+//    if (curve.color_blue < 0 || curve.color_blue > 255) {
+//        throw std::invalid_argument("Invalid blue color");
+//    }
+//    if (curve.coords.size() < 2) {
+//        throw std::invalid_argument("Invalid curve size");
+//    }
+//    emit(addCurve(curve));
+//}
 void MainWindow::execute(std::string &&message) {
     std::cout << "MainWindow::execute(), message = " << message << std::endl;
-    try {
-        auto command = json::parse(message);
-        if (command["target"] == "sharing_document" && command["status"] == "OK") {
-            forDocumentConnection_ = std::make_unique<ServerConnection>(std::string("127.0.0.1"), 8080, ServerConnectionCallbacks{
-                    [this](std::string &&message) { this->execute(std::move(message)); },
-                    {}
-            });
-            forDocumentConnection_->setServerPort(command["port"]);
-            forDocumentConnection_->setServerUrl(command["address"]);
-            forDocumentConnection_->start();
 
-            json command_json = {{"target",     "auth"},
-                                 {"auth_token", command["auth_token"]}};
-            forDocumentConnection_->write(command_json.dump() + std::string("\r\n"));
-        }
-    } catch (...) {
-        std::cerr << "some exception" << std::endl;
+    // TODO: 4) add parser
+    auto parse_message = json::parse(message);
+
+    // TODO: if sharing failed
+    if (parse_message.contains("status") && parse_message["target"] == "sharing_document" && parse_message["status"] == "FAIL") {
+        emit(failedShareSignal());
+    } else
+
+    // TODO: if sharing succeeded
+    if (parse_message.contains("status") && parse_message["target"] == "sharing_document" && parse_message["status"] == "OK") {
+        std::cout << "// TODO: if sharing succeeded" << std::endl;
+        forDocumentConnection_ = std::make_unique<ServerConnection>(std::string("127.0.0.1"), parse_message["port"], ServerConnectionCallbacks{
+                [this](std::string &&message) { this->execute(std::move(message)); },
+                {}
+        });
+        forDocumentConnection_->start();
+        std::string auth_token = to_string(parse_message["address"]) + std::string(":") + to_string(parse_message["port"]) +
+                                 to_string(parse_message["auth_token"]);
+        json to_connect = {{"target",     "auth"},
+                           {"auth_token", parse_message["auth_token"]}};
+        forDocumentConnection_->write(to_connect.dump());
+        emit(successfulShareSignal(auth_token));
+    } else
+
+    // TODO: if joining failed
+    if (parse_message.contains("status") && parse_message["target"] == "auth" && parse_message["status"] == "FAIL") {
+        std::cout << "TODO: if joining failed" << std::endl;
+        emit(failedConnectSignal());
+    } else
+
+    // TODO: if joining succeeded
+    if (parse_message.contains("status") && parse_message["target"] == "auth" && parse_message["status"] == "OK") {
+        std::string auth_token = to_string(parse_message["address"]) + std::string(":") + to_string(parse_message["port"]) + std::string("|") +
+                                 to_string(parse_message["auth_token"]);
+        std::cout << "// TODO: if joining succeeded" << std::endl;
+        //emit(successfulConnectSignal(auth_token));
+    } else
+
+    // TODO: if need to draw a line
+    if (parse_message["target"] == "sharing_command") {
+        std::cout << "TODO: if need to draw a line" << std::endl;
+        std::string command = parse_message["command"];
+        emit(addCurve(command));
+    }
+}
+
+
+void MainWindow::writeSlot(std::string &message) {
+    std::string target = json::parse(message)["target"];
+    std::cerr << "MainWindow::writeSlot, message = " << message << std::endl;
+    if (target == "sharing_document" && serverConnection_) {
+        serverConnection_->write(std::move(message));
+    } else if (forDocumentConnection_) {
+        forDocumentConnection_->write(std::move(message));
+    } else {
+        forDocumentConnection_ = std::make_unique<ServerConnection>(std::string("127.0.0.1"), 6070, ServerConnectionCallbacks{
+                [this](std::string &&message) { this->execute(std::move(message)); },
+                {}
+        });
+        forDocumentConnection_->start();
     }
 }
 
