@@ -35,25 +35,23 @@ void PaintScene::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
 
 
 void PaintScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
-    char separator = ' ';
-    std::string message = std::to_string(brush_size) + separator
-                          + std::to_string(brush_color.red()) + separator
-                          + std::to_string(brush_color.green()) + separator
-                          + std::to_string(brush_color.blue()) + separator
-                          + std::to_string(brush_color.alpha()) + separator;
+    if (is_brush) {
+        char separator = ' ';
+        std::string message = std::to_string(brush_size) + separator + std::to_string(brush_color.red()) + separator + std::to_string(brush_color.green()) + separator + std::to_string(brush_color.blue()) + separator + std::to_string(brush_color.alpha()) + separator;
 
 
-    for (auto& point: curve) {
-        message +=  std::to_string(point.x()) + separator + std::to_string(point.y()) + separator;
+        for (auto &point : curve) {
+            message += std::to_string(point.x()) + separator + std::to_string(point.y()) + separator;
+        }
+
+        // TODO: 1) message -> command
+        json command_json = {{"target", "sharing_command"}, {"command", message}};
+        std::string command_str = command_json.dump();
+
+        emit(writeCurveSignal(command_str));
+
+        curve.clear();
     }
-
-    // TODO: 1) message -> command
-    json command_json = {{"target", "sharing_command"}, {"command", message}};
-    std::string command_str = command_json.dump();
-
-    emit(writeCurveSignal(command_str));
-
-    curve.clear();
 }
 void PaintScene::ChangeBrushStatus() {
     is_brush = !is_brush;
