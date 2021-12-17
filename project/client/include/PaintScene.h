@@ -49,7 +49,7 @@ public slots:
 
 //    void PaintCurveSlot(const Curve& curve);
 
-    void readCurveSlot(std::string& message);
+    void readCurveSlot(const QString& message);
 
 private:
     bool is_brush = false;

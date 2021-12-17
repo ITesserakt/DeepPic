@@ -178,8 +178,8 @@ void MainWindow::execute(std::string &&message) {
                 {}
         });
         forDocumentConnection_->start();
-        std::string auth_token = to_string(parse_message["address"]) + std::string(":") + to_string(parse_message["port"]) +
-                                 to_string(parse_message["auth_token"]);
+        QString auth_token = QString::fromStdString(to_string(parse_message["address"]) + std::string(":") + to_string(parse_message["port"]) +
+                                 to_string(parse_message["auth_token"]));
         json to_connect = {{"target",     "auth"},
                            {"auth_token", parse_message["auth_token"]}};
         forDocumentConnection_->write(to_connect.dump());
@@ -194,17 +194,20 @@ void MainWindow::execute(std::string &&message) {
 
     // TODO: if joining succeeded
     if (parse_message.contains("status") && parse_message["target"] == "auth" && parse_message["status"] == "OK") {
-        std::string auth_token = to_string(parse_message["address"]) + std::string(":") + to_string(parse_message["port"]) + std::string("|") +
-                                 to_string(parse_message["auth_token"]);
+        QString auth_token = QString::fromStdString(to_string(parse_message["address"]) + std::string(":") + to_string(parse_message["port"]) + std::string("|") +
+                                 to_string(parse_message["auth_token"]));
         std::cout << "// TODO: if joining succeeded" << std::endl;
-        //emit(successfulConnectSignal(auth_token));
+        emit(successfulConnectSignal(auth_token));
     } else
 
     // TODO: if need to draw a line
     if (parse_message["target"] == "sharing_command") {
         std::cout << "TODO: if need to draw a line" << std::endl;
-        std::string command = parse_message["command"];
+        QString command = QString::fromStdString(parse_message["command"]);
+//        std::string command = "20 0 128 0 255 402 243 400 248";
         emit(addCurve(command));
+        //QString msg = "30";
+//        emit(addTestPoint(msg));
     }
 }
 

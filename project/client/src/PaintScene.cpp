@@ -95,9 +95,9 @@ void PaintScene::SetBrush(qreal brushSize, const QColor& brushColor) {
     brush_color = brushColor;
 }
 
-void PaintScene::readCurveSlot(std::string &message) {
+void PaintScene::readCurveSlot(const QString &message) {
     std::stringstream curveStr;
-    curveStr << message;   // bad idea
+    curveStr << message.toStdString();   // bad idea
 
     Curve brushCurve;
     curveStr >> brushCurve.brush_size >> brushCurve.color_red >> brushCurve.color_green >> brushCurve.color_blue >> brushCurve.opacity;

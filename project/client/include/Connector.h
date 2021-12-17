@@ -18,10 +18,10 @@ signals:
 
 public slots:
     void failedShareSlot();
-    void successfulShareSlot(std::string& message);
+    void successfulShareSlot(const QString& message);
 
     void failedConnectSlot();
-    void successfulConnectSlot(std::string& message);
+    void successfulConnectSlot(const QString& message);
 
 private:
     QPushButton* connectButton;
@@ -29,8 +29,8 @@ private:
     QPushButton* canselButton;
     //QLabel* message;
 
-    std::string address = "";
-    std::string token = "";
+    QString address = "";
+    QString token = "";
 
 signals:
     void initSignal();

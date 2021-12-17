@@ -42,12 +42,12 @@ private:
 
 signals:
     void failedShareSignal();
-    void successfulShareSignal(std::string& message);
+    void successfulShareSignal(const QString& message);
 
     void failedConnectSignal();
-    void successfulConnectSignal(std::string& message);
+    void successfulConnectSignal(const QString& message);
 
-    void addCurve(std::string& message);
+    void addCurve(const QString& message);
 
 private:
     long temporary_read_position = 0;

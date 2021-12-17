@@ -66,26 +66,26 @@ Connector::~Connector() {
 }
 
 void Connector::addressChangedSlot(const QString &text) {
-    address = text.toStdString();
+    address = text;
 }
 
 void Connector::tokenChangedSlot(const QString &text) {
-    token = text.toStdString();
+    token = text;
 }
 
 void Connector::writeConnectionSlot() {
     // TODO: 2) change connection message
     json message_json = {{"target",     "auth"},
-                         {"auth_token", token},
-                         {"address",    address}};
+                         {"auth_token", token.toStdString()},
+                         {"address",    address.toStdString()}};
     std::string message = message_json.dump();
     emit(writeSignal(message));
 }
 
 void Connector::writeShareSlot() {
     json message_json = {{"target",     "sharing_document"},
-                         {"auth_token", token},
-                         {"address",    address}};
+                         {"auth_token", token.toStdString()},
+                         {"address",    address.toStdString()}};
     std::string message = message_json.dump();
     emit(writeSignal(message));
 }
@@ -112,12 +112,13 @@ void Connector::failedConnectSlot() {
     addWidget(canselButton);
 }
 
-void separate(const std::string &message, std::string &l, std::string &r, char separator) {
-    l = message.substr(0, message.find(separator));
-    r = message.substr(message.find(separator) + 1, message.size() - 1);
+void separate(const QString& message, QString& l, QString& r, char separator) {
+
+    l = QString::fromStdString(message.toStdString().substr(0, message.toStdString().find(separator))); // rewrite
+    r = QString::fromStdString(message.toStdString().substr(message.toStdString().find(separator) + 1, message.size() - 1));
 }
 
-void Connector::successfulShareSlot(std::string &message) {
+void Connector::successfulShareSlot(const QString& message) {
 //    std::string separator = "|";
 //    address = message.substr(0, message.find(separator));
 //    token = message.substr(message.find(separator) + 1, message.size() - 1);
@@ -128,13 +129,13 @@ void Connector::successfulShareSlot(std::string &message) {
     auto label = new QLabel(this);
 
     clear();
-    QString msg = QString::fromStdString("You're sharing the document.\nAddress: " + address + "\nToken: " + token);
+    QString msg = "You're sharing the document.\nAddress: " + address + "\nToken: " + token;
     label->setText(msg);
     addWidget(label);
     addWidget(canselButton);
 }
 
-void Connector::successfulConnectSlot(std::string &message) {
+void Connector::successfulConnectSlot(const QString &message) {
     separate(message, address, token, '|');
 
     canselButton = new QPushButton("Cansel", this);
@@ -142,7 +143,7 @@ void Connector::successfulConnectSlot(std::string &message) {
     auto label = new QLabel(this);
 
     clear();
-    QString msg = QString::fromStdString("You've joined the document.\nAddress: " + address + "\nToken: " + token);
+    QString msg = "You've joined the document.\nAddress: " + address + "\nToken: " + token;
     label->setText(msg);
     addWidget(label);
     addWidget(canselButton);
