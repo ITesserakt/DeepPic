@@ -1,5 +1,7 @@
 #include "PaintScene.h"
-#include <iostream>
+#include <QPainter>
+#include <QGraphicsPixmapItem>
+#include <sstream>
 
 void PaintScene::mousePressEvent(QGraphicsSceneMouseEvent *event) {
     if (is_brush) {
@@ -9,8 +11,8 @@ void PaintScene::mousePressEvent(QGraphicsSceneMouseEvent *event) {
                    brush_size,
                    QPen(Qt::NoPen),
                    QBrush(brush_color));
-        previous_point = event->scenePos();
-        line.push_back(previous_point);
+        previous_point = event->scenePos().toPoint();
+        curve.push_back(previous_point);
     }
 
 }
@@ -22,21 +24,34 @@ void PaintScene::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
                 event->scenePos().x(),
                 event->scenePos().y(),
                 QPen(brush_color, brush_size, Qt::SolidLine, Qt::RoundCap));
-        previous_point = event->scenePos();
-        line.push_back(previous_point);
+        previous_point = event->scenePos().toPoint();
+        curve.push_back(previous_point);
     }
 }
 
 
 void PaintScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
-    PushCurve({brush_size, brush_color.red(), brush_color.green(), brush_color.blue(),
-               line});
-    line.clear();
+    char separator = ' ';
+    std::string message = std::to_string(brush_size) + separator
+                          + std::to_string(brush_color.red()) + separator
+                          + std::to_string(brush_color.green()) + separator
+                          + std::to_string(brush_color.blue()) + separator
+                          + std::to_string(brush_color.alpha()) + separator;
+
+
+    for (auto& point: curve) {
+        message +=  std::to_string(point.x()) + separator + std::to_string(point.y()) + separator;
+    }
+    // TODO: 1) message -> command
+    emit(writeCurveSignal(message));
+
+    curve.clear();
 }
 void PaintScene::ChangeBrushStatus() {
     is_brush = !is_brush;
 }
 PaintScene::PaintScene(QObject *parent) {
+    //connect(this, &PaintScene::writeCurveSignal, this, &PaintScene::readCurveSlot); //
     brush_color.setRgb(0,255,0);
 
 }
@@ -67,23 +82,35 @@ void PaintScene::SetBlueSlot(int value) {
     assert(value < 256 && value >= 0);
     brush_color.setBlue(value);
 }
-void PaintScene::SetBrush(qreal size, int red, int green, int blue, int opacity) {
-    brush_size = size;
-    brush_color.setRgb(red, green, blue, opacity);
+void PaintScene::SetBrush(qreal brushSize, const QColor& brushColor) {
+    brush_size = brushSize;
+    brush_color = brushColor;
 }
-void PaintScene::PaintCurveSlot(const Curve &curve) {
-    assert(curve.coords.size() > 1);
-    assert(curve.color_red < 256 && curve.color_red >= 0);
-    assert(curve.color_green < 256 && curve.color_green >= 0);
-    assert(curve.color_blue < 256 && curve.color_blue >= 0);
 
-    for (int i = 1; i < curve.coords.size(); ++i) {
-//        std::cout << curve.coords[i].x() << "\n";
-        addLine(curve.coords[i].x(),
-                curve.coords[i].y() ,
-                curve.coords[i - 1].x(),
-                curve.coords[i - 1].y(),
-                QPen(QColor(curve.color_red, curve.color_green, curve.color_blue),
-                     curve.brush_size, Qt::SolidLine, Qt::RoundCap));
+void PaintScene::readCurveSlot(std::string &message) {
+    std::stringstream curveStr;
+    curveStr << message;   // bad idea
+
+    Curve brushCurve;
+    curveStr >> brushCurve.brush_size >> brushCurve.color_red >> brushCurve.color_green >> brushCurve.color_blue >> brushCurve.opacity;
+    int32_t point_x = 0;
+    int32_t point_y = 0;
+
+    while (curveStr >> point_x >> point_y){
+        brushCurve.coords.emplace_back(point_x, point_y);
+    }
+
+    assert(brushCurve.coords.size() > 1);
+    assert(brushCurve.color_red < 256 && brushCurve.color_red >= 0);
+    assert(brushCurve.color_green < 256 && brushCurve.color_green >= 0);
+    assert(brushCurve.color_blue < 256 && brushCurve.color_blue >= 0);
+
+    for (int i = 1; i < brushCurve.coords.size(); ++i) {
+        addLine(brushCurve.coords[i].x(),
+                brushCurve.coords[i].y() ,
+                brushCurve.coords[i - 1].x(),
+                brushCurve.coords[i - 1].y(),
+                QPen(QColor(brushCurve.color_red, brushCurve.color_green, brushCurve.color_blue, brushCurve.opacity),
+                     brushCurve.brush_size, Qt::SolidLine, Qt::RoundCap));
     }
 }

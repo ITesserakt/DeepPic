@@ -16,21 +16,34 @@
 
 #include <stdexcept>
 
+////
+#include <QImage>
+#include <QPixmap>
+////
+
 #include <iostream>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent) {
 
-    scene = new PaintScene(this);       // Инициализируем графическую сцену
-    qGraphicsView = new QGraphicsView;
-    qGraphicsView->setScene(scene);
-    setCentralWidget(qGraphicsView);
+    scene = new PaintScene(this);
+    connect(scene, &PaintScene::writeCurveSignal, this, &MainWindow::writeSlot);
+    connect(this, &MainWindow::addCurve, scene, &PaintScene::readCurveSlot);
+
+    canvas = new Canvas;
+    canvas->setScene(scene);
+
+    setCentralWidget(canvas);
 
     // MenuBar
     auto *file_open = new QAction("&Open", this);
+    connect(file_open, &QAction::triggered, canvas, &Canvas::openImageSlot);
     auto *file_close = new QAction("&Close", this);
+    connect(file_close, &QAction::triggered, canvas, &Canvas::closeImageSlot);
     auto *file_save = new QAction("&Save", this);
+    connect(file_save, &QAction::triggered, canvas, &Canvas::saveImageSlot);
     auto *file_save_as = new QAction("&Save as", this);
+    connect(file_save_as, &QAction::triggered, canvas, &Canvas::saveAsImageSlot);
     QMenu *file;
     file = menuBar()->addMenu("File");
     file->addAction(file_open);
@@ -51,21 +64,29 @@ MainWindow::MainWindow(QWidget *parent) :
     help->addAction(help_help);
 
     // ToolBars
-//    parametersPanel = new ParametersPanel;
-//    addToolBar(parametersPanel);
+    parametersPanel = new ParametersPanel(this);
+    addToolBar(parametersPanel);
     parameters_panel = new QToolBar;
     addToolBar(parameters_panel);
     parameters_panel->setFixedHeight(40);
 
-    auto *right_panel = new QToolBar;
-    addToolBar(Qt::RightToolBarArea, right_panel);
-    right_panel->setFixedWidth(400);
+    connector = new Connector(this);
+    addToolBar(Qt::RightToolBarArea, connector);
+    connector->setFixedWidth(400);
+
+    connect(connector, &Connector::writeSignal, this, &MainWindow::writeSlot);
+    connect(this, &MainWindow::failedShareSignal, connector, &Connector::failedShareSlot);
+    connect(this, &MainWindow::failedConnectSignal, connector, &Connector::failedConnectSlot);
+    connect(this, &MainWindow::successfulConnectSignal, connector, &Connector::successfulConnectSlot);
+    connect(this, &MainWindow::successfulShareSignal, connector, &Connector::successfulShareSlot);
+
+
 
     toolsPanel = new ToolsPanel;
     addToolBar(Qt::LeftToolBarArea, toolsPanel);
 
-    connect(toolsPanel->actions()[0], &QAction::triggered, this, &MainWindow::slotBrush);
-    connect(this, &MainWindow::TemporarySignal, scene, &PaintScene::PaintCurveSlot);
+    connect(toolsPanel, &ToolsPanel::BrushTriggered, this, &MainWindow::slotBrush);
+    //connect(this, &MainWindow::addCurve, scene, &PaintScene::PaintCurveSlot);
     //connect(scene, &PaintScene::PushCurve, this, &MainWindow::TemporaryWriterSlot);
 
 
@@ -81,89 +102,86 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::slotTimer() {
-    scene->setSceneRect(0, 0, qGraphicsView->width() - 20, qGraphicsView->height() - 20);
+    scene->setSceneRect(0, 0, canvas->width() - 20, canvas->height() - 20);
 }
 
-void MainWindow::slotBrush() {
+void MainWindow::slotBrush(qreal brushSize, const QColor& brushColor) {
 
     if (scene->BrushStatus()) {
-        parameters_panel->clear();
-        //parametersPanel->clear();
+        parametersPanel->clear();
     } else {
-        //parametersPanel->setBrush();
+        scene->SetBrush(brushSize, brushColor);
+        parametersPanel->setBrush(brushSize, brushColor);
+        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushSizeChanged), scene, &PaintScene::SetBrushSize);
+        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushSizeChanged), toolsPanel, &ToolsPanel::SetBrushSizeSlot);
 
-        scene->SetBrush(30, 0, 180, 40, 255);
-        scene->setSceneRect(0, 0, qGraphicsView->width() - 20, qGraphicsView->height() - 20);
+        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushRedChanged), scene, &PaintScene::SetRedSlot);
+        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushRedChanged), toolsPanel, &ToolsPanel::SetBrushRedSlot);
 
-        auto *dummy = new QWidget();
-        dummy->setFixedWidth(40);
-        parameters_panel->addWidget(dummy);
+        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushGreenChanged), scene, &PaintScene::SetGreenSlot);
+        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushGreenChanged), toolsPanel, &ToolsPanel::SetBrushGreenSlot);
 
-        auto *size_changer = new Changer("Size", 30, 500, this);
-        connect(size_changer, QOverload<int>::of(&Changer::valueChanged), scene, &PaintScene::SetBrushSize);
-        parameters_panel->addWidget(size_changer);
-        parameters_panel->addSeparator();
+        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushBlueChanged), scene, &PaintScene::SetBlueSlot);
+        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushBlueChanged), toolsPanel, &ToolsPanel::SetBrushBlueSlot);
 
-
-        auto *palette = new Palette;
-        palette->SetColor(0, 180, 40, 255);
-
-        auto *opacity_changer = new Changer("Opacity", 255, 255, this);
-        connect(opacity_changer, QOverload<int>::of(&Changer::valueChanged), scene,
-                (&PaintScene::SetTransparencySlot));
-
-
-        auto *red_changer = new Changer("Red", 0, 255, this);
-        connect(red_changer, QOverload<int>::of(&Changer::valueChanged), scene,
-                (&PaintScene::SetRedSlot));
-        connect(red_changer, QOverload<int>::of(&Changer::valueChanged), palette,
-                (&Palette::SetRed));
-        parameters_panel->addWidget(red_changer);
-
-        auto *green_changer = new Changer("Green", 180, 255, this);
-        connect(green_changer, QOverload<int>::of(&Changer::valueChanged), scene,
-                (&PaintScene::SetGreenSlot));
-        connect(green_changer, QOverload<int>::of(&Changer::valueChanged), palette,
-                (&Palette::SetGreen));
-        parameters_panel->addWidget(green_changer);
-
-        auto *blue_changer = new Changer("Blue", 40, 255, this);
-        connect(blue_changer, QOverload<int>::of(&Changer::valueChanged), scene,
-                (&PaintScene::SetBlueSlot));
-        connect(blue_changer, QOverload<int>::of(&Changer::valueChanged), palette,
-                (&Palette::SetBlue));
-        parameters_panel->addWidget(blue_changer);
-
-
-//        Palette palette;
-        parameters_panel->addWidget(palette);
-        parameters_panel->addSeparator();
-
-        parameters_panel->addWidget(opacity_changer);
-
-
-        parameters_panel->setStyleSheet(QString("QToolBar {spacing: %1}").arg(10));
+        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushOpacityChanged), scene, &PaintScene::SetTransparencySlot);
+        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushOpacityChanged), toolsPanel, &ToolsPanel::SetBrushOpacitySlot);
     }
     scene->ChangeBrushStatus();
 }
 
-void MainWindow::executeBrush(const Curve& curve) {
-    if (curve.brush_size < 0) {
-        throw std::invalid_argument("Invalid size");
+//void MainWindow::executeBrush(const Curve& curve) {
+//    if (curve.brush_size < 0) {
+//        throw std::invalid_argument("Invalid size");
+//    }
+//    if (curve.color_red < 0 || curve.color_red > 255) {
+//        throw std::invalid_argument("Invalid red color");
+//    }
+//    if (curve.color_green < 0 || curve.color_green > 255) {
+//        throw std::invalid_argument("Invalid green color");
+//    }
+//    if (curve.color_blue < 0 || curve.color_blue > 255) {
+//        throw std::invalid_argument("Invalid blue color");
+//    }
+//    if (curve.coords.size() < 2) {
+//        throw std::invalid_argument("Invalid curve size");
+//    }
+//    emit(addCurve(curve));
+//}
+void MainWindow::execute(std::string&& message) {
+    // TODO: 4) add parser
+
+    // TODO: if sharing failed
+    if (false) {
+        emit(failedShareSignal());
     }
-    if (curve.color_red < 0 || curve.color_red > 255) {
-        throw std::invalid_argument("Invalid red color");
+
+    // TODO: if sharing succeeded
+    if (false) {
+        std::string message = "address|token"; ////  create a message from the command
+        emit(successfulShareSignal(message));
     }
-    if (curve.color_green < 0 || curve.color_green > 255) {
-        throw std::invalid_argument("Invalid green color");
+
+    // TODO: if joining failed
+    if (false) {
+        emit(failedConnectSignal());
     }
-    if (curve.color_blue < 0 || curve.color_blue > 255) {
-        throw std::invalid_argument("Invalid blue color");
+
+    // TODO: if joining succeeded
+    if (false) {
+        std::string message = "address|token"; ////  create a message from the command
+        emit(successfulConnectSignal(message));
     }
-    if (curve.coords.size() < 2) {
-        throw std::invalid_argument("Invalid curve size");
+
+    // TODO: if need to draw a line
+    if (false) {
+        std::string message = ""; ////  create a message from the command
+        emit(addCurve(message));
     }
-    emit(TemporarySignal(curve));
+
+}
+void MainWindow::writeSlot(std::string &message) {
+    // TODO: client write
 }
 
 //void MainWindow::resizeEvent(QResizeEvent *event)
