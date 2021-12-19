@@ -22,6 +22,7 @@ public slots:
     void saveImageSlot();
     void saveAsImageSlot();
     void closeImageSlot();
+    void setImageSlot( const QVector<unsigned char> image);
     
 
 private:

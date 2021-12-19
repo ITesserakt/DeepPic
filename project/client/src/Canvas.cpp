@@ -92,3 +92,6 @@ QVector<unsigned char> Canvas::GetImageVector() {
 
     return ImageVector;
 }
+void Canvas::setImageSlot(QVector<unsigned char> image) {
+    //
+}

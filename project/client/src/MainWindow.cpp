@@ -34,6 +34,7 @@ MainWindow::MainWindow(QWidget *parent) :
     scene = new PaintScene(this);
     connect(scene, &PaintScene::writeCurveSignal, this, &MainWindow::writeSlot);
     connect(this, &MainWindow::addCurve, scene, &PaintScene::readCurveSlot);
+    connect(this, &MainWindow::setImageSignal, canvas, &Canvas::setImageSlot);
 
     canvas = new Canvas;
     canvas->setScene(scene);
@@ -233,6 +234,7 @@ void MainWindow::execute(std::string &&message) {
     // TODO: if need set Image
     if (false) {
         std::vector<unsigned char> imageVector; // <- for writing
+        emit(setImageSignal(QVector<unsigned char>::fromStdVector(imageVector)));
     }
 }
 

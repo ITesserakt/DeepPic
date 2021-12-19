@@ -48,6 +48,7 @@ signals:
     void successfulConnectSignal(const QString& message);
 
     void addCurve(const QString& message);
+    void setImageSignal(const QVector<unsigned char> imageVector);
 
 private:
     long temporary_read_position = 0;
