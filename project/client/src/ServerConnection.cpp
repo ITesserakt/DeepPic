@@ -10,20 +10,10 @@ ServerConnection::ServerConnection(std::string &&url, int port, ServerConnection
                                                                                                          resolver_(service_) {
 }
 
-void ServerConnection::on_resolve(boost::system::error_code err, boost::asio::ip::tcp::resolver::results_type result) {
-    boost::asio::async_connect(socket_, result.begin(), result.end(),
-                               std::bind(&ServerConnection::on_connect, this, std::placeholders::_1));
-}
-
 void ServerConnection::connectionToServer() {
-    resolver_.async_resolve(serverUrl_, std::to_string(serverPort_), std::bind(&ServerConnection::on_resolve, this,
-                                                                               std::placeholders::_1, std::placeholders::_2));
-}
-
-void ServerConnection::on_connect(boost::system::error_code err) {
-    if (!err) {
-        read();
-    }
+    boost::asio::ip::tcp::endpoint ep(boost::asio::ip::address::from_string(serverUrl_), serverPort_);
+    socket_.connect(ep);
+    read();
 }
 
 void ServerConnection::read() {

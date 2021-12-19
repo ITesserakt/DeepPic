@@ -50,11 +50,11 @@ public:
         return serverPort_;
     };
 
+    void stop() {
+        socket_.close();
+    }
+
 private:
-    void on_resolve(boost::system::error_code err, boost::asio::ip::tcp::resolver::results_type result);
-
-    void on_connect(boost::system::error_code err);
-
     void read();
 
     void connectionToServer();
