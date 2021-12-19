@@ -40,6 +40,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     setCentralWidget(canvas);
 
+
     // MenuBar
     auto *file_open = new QAction("&Open", this);
     connect(file_open, &QAction::triggered, canvas, &Canvas::openImageSlot);
@@ -112,7 +113,8 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::slotTimer() {
-    scene->setSceneRect(0, 0, canvas->width() - 20, canvas->height() - 20);
+    scene->setSceneRect(0, 0, canvas->width() - 16, canvas->height() - 16);
+    timer->stop();
 }
 
 void MainWindow::slotBrush(qreal brushSize, const QColor &brushColor) {
@@ -208,6 +210,11 @@ void MainWindow::execute(std::string &&message) {
         emit(addCurve(command));
         //QString msg = "30";
 //        emit(addTestPoint(msg));
+    }
+
+    // TODO: if need get Image
+    if (false) {
+        std::vector<unsigned char> a = canvas->GetImageVector().toStdVector();
     }
 }
 

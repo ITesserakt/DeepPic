@@ -15,6 +15,8 @@ public:
     explicit Canvas(QWidget *parent = 0);
     ~Canvas() = default;
 
+    QVector<unsigned char> GetImageVector();
+
 public slots:
     void openImageSlot();
     void saveImageSlot();
