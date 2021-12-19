@@ -227,7 +227,12 @@ void MainWindow::execute(std::string &&message) {
 
     // TODO: if need get Image
     if (false) {
-        std::vector<unsigned char> a = canvas->GetImageVector().toStdVector();
+        std::vector<unsigned char> imageVector = canvas->GetImageVector().toStdVector();
+    }
+
+    // TODO: if need set Image
+    if (false) {
+        std::vector<unsigned char> imageVector; // <- for writing
     }
 }
 
