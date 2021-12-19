@@ -170,37 +170,50 @@ void MainWindow::execute(std::string &&message) {
         emit(failedShareSignal());
     } else
 
-    // TODO: if sharing succeeded
+        // TODO: if sharing succeeded
     if (parse_message.contains("status") && parse_message["target"] == "sharing_document" && parse_message["status"] == "OK") {
         std::cout << "// TODO: if sharing succeeded" << std::endl;
-        forDocumentConnection_ = std::make_unique<ServerConnection>(std::string("127.0.0.1"), parse_message["port"], ServerConnectionCallbacks{
-                [this](std::string &&message) { this->execute(std::move(message)); },
-                {}
-        });
+
+        if (forDocumentConnection_) {
+            forDocumentConnection_->stop();
+        }
+
+        forDocumentConnection_ = std::make_unique<ServerConnection>(parse_message["address"], parse_message["port"],
+                                                                    ServerConnectionCallbacks{
+                                                                            [this](std::string &&message) {
+                                                                                this->execute(std::move(message));
+                                                                            },
+                                                                            {}
+                                                                    });
+        std::cout << "// TODO: if sharing succeeded" << std::endl;
         forDocumentConnection_->start();
-        QString auth_token = QString::fromStdString(to_string(parse_message["address"]) + std::string(":") + to_string(parse_message["port"]) +
-                                 to_string(parse_message["auth_token"]));
+        std::cout << "// TODO: if sharing succeeded" << std::endl;
+        QString auth_token = QString::fromStdString(
+                to_string(parse_message["address"]) + std::string(":") + to_string(parse_message["port"]) +
+                to_string(parse_message["auth_token"]));
         json to_connect = {{"target",     "auth"},
                            {"auth_token", parse_message["auth_token"]}};
+        std::cout << "// TODO: if sharing succeeded" << std::endl;
         forDocumentConnection_->write(to_connect.dump());
         emit(successfulShareSignal(auth_token));
     } else
 
-    // TODO: if joining failed
+        // TODO: if joining failed
     if (parse_message.contains("status") && parse_message["target"] == "auth" && parse_message["status"] == "FAIL") {
         std::cout << "TODO: if joining failed" << std::endl;
         emit(failedConnectSignal());
     } else
 
-    // TODO: if joining succeeded
+        // TODO: if joining succeeded
     if (parse_message.contains("status") && parse_message["target"] == "auth" && parse_message["status"] == "OK") {
-        QString auth_token = QString::fromStdString(to_string(parse_message["address"]) + std::string(":") + to_string(parse_message["port"]) + std::string("|") +
-                                 to_string(parse_message["auth_token"]));
+        QString auth_token = QString::fromStdString(
+                to_string(parse_message["address"]) + std::string(":") + to_string(parse_message["port"]) + std::string("|") +
+                to_string(parse_message["auth_token"]));
         std::cout << "// TODO: if joining succeeded" << std::endl;
         emit(successfulConnectSignal(auth_token));
     } else
 
-    // TODO: if need to draw a line
+        // TODO: if need to draw a line
     if (parse_message["target"] == "sharing_command") {
         std::cout << "TODO: if need to draw a line" << std::endl;
         QString command = QString::fromStdString(parse_message["command"]);
@@ -213,18 +226,24 @@ void MainWindow::execute(std::string &&message) {
 
 
 void MainWindow::writeSlot(std::string &message) {
-    std::string target = json::parse(message)["target"];
+    //std::string target = json::parse(message)["target"];
+    auto json_message = json::parse(message);
     std::cerr << "MainWindow::writeSlot, message = " << message << std::endl;
-    if (target == "sharing_document" && serverConnection_) {
+    if (json_message["target"] == "sharing_document" && serverConnection_) {
         serverConnection_->write(std::move(message));
     } else if (forDocumentConnection_) {
         forDocumentConnection_->write(std::move(message));
     } else {
-        forDocumentConnection_ = std::make_unique<ServerConnection>(std::string("127.0.0.1"), 6070, ServerConnectionCallbacks{
+        std::string address_string = to_string(json_message["address"]);
+        std::string address = address_string.substr(1, address_string.find(':') - 1);
+        std::string port = address_string.substr(address_string.find(':') + 1, address_string.size() - address_string.find(':') - 2);
+        std::cout << address << " " << port << std::endl;
+        forDocumentConnection_ = std::make_unique<ServerConnection>(std::move(address), std::stoi(port), ServerConnectionCallbacks{
                 [this](std::string &&message) { this->execute(std::move(message)); },
                 {}
         });
         forDocumentConnection_->start();
+        forDocumentConnection_->write(std::move(message));
     }
 }
 

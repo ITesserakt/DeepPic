@@ -106,7 +106,7 @@ void PaintScene::readCurveSlot(const QString &message) {
         brushCurve.coords.emplace_back(point_x, point_y);
     }
 
-    assert(brushCurve.coords.size() > 1);
+    //assert(brushCurve.coords.size() > 1);
     assert(brushCurve.color_red < 256 && brushCurve.color_red >= 0);
     assert(brushCurve.color_green < 256 && brushCurve.color_green >= 0);
     assert(brushCurve.color_blue < 256 && brushCurve.color_blue >= 0);
