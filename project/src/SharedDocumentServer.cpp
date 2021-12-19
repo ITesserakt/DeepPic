@@ -28,7 +28,7 @@ SharedDocumentServer::SharedDocumentServer(boost::asio::io_context &service) : s
 }
 
 void SharedDocumentServer::generateAuthToken() {
-    static std::vector<char> syms = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
+    static const std::vector<char> syms = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
                                      'u', 'v', 'w', 'x', 'y', 'z', '_', '-', '$', '@'};
     static int token_length = 20;
     for (int i = 0; i < token_length; ++i) {

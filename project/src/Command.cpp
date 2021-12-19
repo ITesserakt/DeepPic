@@ -32,13 +32,13 @@ Command::~Command() {
 }
 
 bool GetDocument::do_command(json &command, std::shared_ptr<Connection> author) {
-    if (command["target"] == "get_document" && !command.contains("status")) {
-        if (command.contains("status") && command["status"] == "OK") {
-            sendDocumentToNewClients(std::move(command["document"]));
+    if (command["target"] == "get_document") {
+        if (command.contains("status") && command["status"] == "OK") { // если пришел документ от одного из пользователей
+            sendDocumentToNewClients(std::move(command["document"])); // рассылаем его всем нуждающимся
             return true;
-        } else if (!command.contains("status")) {
-            clientsToGetDocument_.push_back(author);
-            getDocumentFromClient();
+        } else if (!command.contains("status")) { // если пришел запрос на получение документа
+            clientsToGetDocument_.push_back(author); // добавляем автора запроса в вектор тех, кому нужен документ
+            getDocumentFromClient(); // и запрашиваем документ у одного из участников
             return true;
         }
     }
@@ -63,6 +63,7 @@ void GetDocument::sendDocumentToNewClients(std::string &&document) {
     for (auto &client: clientsToGetDocument_) {
         client->write(command_dump);
     }
+    clientsToGetDocument_.clear();
 }
 
 GetDocument::GetDocument(std::vector<std::shared_ptr<Connection>> *connections) {
@@ -87,9 +88,6 @@ bool SharingCommand::do_command(json &command, std::shared_ptr<Connection> autho
 
 bool CreateNewDocumentCommand::do_command(json &command, std::shared_ptr<Connection> author) {
     BOOST_LOG_TRIVIAL(info) << "Create new document";
-    if (SharedDocumentServer::start_since_port > 6070) {
-        return false;
-    }
 
     std::shared_ptr<SharedDocumentServer> shared_document(
             new SharedDocumentServer(static_cast<boost::asio::io_context &>(author->getSock().get_executor().context())));
