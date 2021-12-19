@@ -92,6 +92,29 @@ QVector<unsigned char> Canvas::GetImageVector() {
 
     return ImageVector;
 }
-void Canvas::setImageSlot(QVector<unsigned char> image) {
-    //
+void Canvas::setImageSlot(QVector<unsigned char> imageVector) {
+    union{
+        unsigned char bytes[4];
+        uint16_t height;
+        uint16_t width;
+    }byte_size;
+
+    for (int i = 0; i < 4; ++i) {
+        byte_size.bytes[i] = imageVector[i];
+    }
+
+    auto *image = new QImage(byte_size.height, byte_size.height, QImage::QImage::Format_RGB32);
+
+    size_t k = 4;
+    for (int i = 0; i < image->width(); ++i) {
+        for (int j = 0; j < image->height(); ++j) {
+            image->setPixelColor(i, j,{byte_size.bytes[k++],
+                                               byte_size.bytes[k++],
+                                               byte_size.bytes[k++]});
+        }
+    }
+
+    setSceneRect(0, 0, image->width(), image->height());
+    scene()->addPixmap(QPixmap::fromImage(*image));
+    delete image;
 }
