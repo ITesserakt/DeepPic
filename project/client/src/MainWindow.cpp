@@ -23,26 +23,20 @@ using json = nlohmann::json;
 
 MainWindow::MainWindow(QWidget *parent) :
         QMainWindow(parent) {
+    setFixedSize(1000, 800);
 
     scene = new PaintScene(this);
-    connect(scene, &PaintScene::writeCurveSignal, this, &MainWindow::writeSlot);
-    connect(this, &MainWindow::addCurve, scene, &PaintScene::readCurveSlot);
-    //connect(this, &MainWindow::setImageSignal, this, &MainWindow::loadImage);
-//
-//    connect(this, &MainWindow::saveImageToSignal, canvas, &Canvas::saveImageToSlot);
-//    connect(this, &MainWindow::setImageFromSignal, canvas, &Canvas::setImageFromSlot);
-
-    canvas = new Canvas;
+    canvas = new Canvas(this);
     canvas->setScene(scene);
 
     setCentralWidget(canvas);
 
+    connect(scene, &PaintScene::writeCurveSignal, this, &MainWindow::writeSlot);
+    connect(this, &MainWindow::addCurve, scene, &PaintScene::readCurveSlot);
 
     // MenuBar
     auto *file_open = new QAction("&Open", this);
     connect(file_open, &QAction::triggered, this, &MainWindow::loadImage);
-//    auto *file_close = new QAction("&Close", this);
-//    connect(file_close, &QAction::triggered, canvas, &Canvas::closeImageSlot);
     auto *file_save = new QAction("&Save", this);
     connect(file_save, &QAction::triggered, this, &MainWindow::saveImage);
     auto *file_save_as = new QAction("&Save as", this);
@@ -50,7 +44,6 @@ MainWindow::MainWindow(QWidget *parent) :
     QMenu *file;
     file = menuBar()->addMenu("File");
     file->addAction(file_open);
-//    file->addAction(file_close);
     file->addAction(file_save);
     file->addAction(file_save_as);
 
@@ -69,9 +62,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // ToolBars
     parametersPanel = new ParametersPanel(this);
     addToolBar(parametersPanel);
-    parameters_panel = new QToolBar;
-    addToolBar(parameters_panel);
-    parameters_panel->setFixedHeight(40);
+    parametersPanel->setFixedHeight(40);
 
     connector = new Connector(this);
     addToolBar(Qt::RightToolBarArea, connector);
@@ -83,19 +74,12 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, &MainWindow::successfulConnectSignal, connector, &Connector::successfulConnectSlot);
     connect(this, &MainWindow::successfulShareSignal, connector, &Connector::successfulShareSlot);
 
-
-    toolsPanel = new ToolsPanel;
-    addToolBar(Qt::LeftToolBarArea, toolsPanel);
-
     connect(toolsPanel, &ToolsPanel::BrushTriggered, this, &MainWindow::slotBrush);
-    //connect(this, &MainWindow::addCurve, scene, &PaintScene::PaintCurveSlot);
-    //connect(scene, &PaintScene::PushCurve, this, &MainWindow::TemporaryWriterSlot);
-
 
     //  Status bar
     statusBar()->showMessage("Status bar");
 
-    timer = new QTimer();
+
     connect(timer, &QTimer::timeout, this, &MainWindow::slotTimer);
     timer->start(500);
     serverConnection_ = std::make_unique<ServerConnection>(std::string("127.0.0.1"), 8080, ServerConnectionCallbacks{
@@ -104,9 +88,7 @@ MainWindow::MainWindow(QWidget *parent) :
     });
 
     serverConnection_->start();
-}
-
-MainWindow::~MainWindow() {
+    timer = new QTimer(this);
 }
 
 void MainWindow::slotTimer() {
@@ -121,20 +103,20 @@ void MainWindow::slotBrush(qreal brushSize, const QColor &brushColor) {
     } else {
         scene->SetBrush(brushSize, brushColor);
         parametersPanel->setBrush(brushSize, brushColor);
-        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushSizeChanged), scene, &PaintScene::SetBrushSize);
-        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushSizeChanged), toolsPanel, &ToolsPanel::SetBrushSizeSlot);
+        connect(parametersPanel, &ParametersPanel::BrushSizeChanged, scene, &PaintScene::SetBrushSize);
+        connect(parametersPanel, &ParametersPanel::BrushSizeChanged, toolsPanel, &ToolsPanel::SetBrushSizeSlot);
 
-        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushRedChanged), scene, &PaintScene::SetRedSlot);
-        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushRedChanged), toolsPanel, &ToolsPanel::SetBrushRedSlot);
+        connect(parametersPanel, &ParametersPanel::BrushRedChanged, scene, &PaintScene::SetRedSlot);
+        connect(parametersPanel, &ParametersPanel::BrushRedChanged, toolsPanel, &ToolsPanel::SetBrushRedSlot);
 
-        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushGreenChanged), scene, &PaintScene::SetGreenSlot);
-        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushGreenChanged), toolsPanel, &ToolsPanel::SetBrushGreenSlot);
+        connect(parametersPanel, &ParametersPanel::BrushGreenChanged, scene, &PaintScene::SetGreenSlot);
+        connect(parametersPanel, &ParametersPanel::BrushGreenChanged, toolsPanel, &ToolsPanel::SetBrushGreenSlot);
 
-        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushBlueChanged), scene, &PaintScene::SetBlueSlot);
-        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushBlueChanged), toolsPanel, &ToolsPanel::SetBrushBlueSlot);
+        connect(parametersPanel, &ParametersPanel::BrushBlueChanged, scene, &PaintScene::SetBlueSlot);
+        connect(parametersPanel, &ParametersPanel::BrushBlueChanged, toolsPanel, &ToolsPanel::SetBrushBlueSlot);
 
-        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushOpacityChanged), scene, &PaintScene::SetTransparencySlot);
-        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushOpacityChanged), toolsPanel, &ToolsPanel::SetBrushOpacitySlot);
+        connect(parametersPanel, &ParametersPanel::BrushOpacityChanged, scene, &PaintScene::SetTransparencySlot);
+        connect(parametersPanel, &ParametersPanel::BrushOpacityChanged, toolsPanel, &ToolsPanel::SetBrushOpacitySlot);
     }
     scene->ChangeBrushStatus();
 }
