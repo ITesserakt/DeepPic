@@ -113,7 +113,7 @@ void Canvas::save(const QString& path) {
     QPainter painter(&image);
     setRenderHint(QPainter::Antialiasing);
     render(&painter);
-    image.save(filePath, "JPG");
+    image.save(path, "JPG");
 }
 void Canvas::saveImageToSlot(const QString& path) {
     save(path);
