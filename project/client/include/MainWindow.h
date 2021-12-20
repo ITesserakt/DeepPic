@@ -50,6 +50,8 @@ signals:
     void addCurve(const QString& message);
     void setImageSignal(const QVector<unsigned char> imageVector);
 
+    void saveImageToSignal(const QString& path);
+
 private:
     long temporary_read_position = 0;
 

@@ -33,23 +33,12 @@ void Canvas::saveImageSlot() {
         filePath = QFileDialog::getSaveFileName(this,
                                                     tr("Save Image"), ".");
     }
-
-
-    QImage image(width(), height(), QImage::Format_ARGB32_Premultiplied);
-    image.fill(Qt::white);
-    QPainter painter(&image);
-    render(&painter);
-    image.save(filePath, "JPG");
+    save(filePath);
 }
 void Canvas::saveAsImageSlot() {
     filePath = QFileDialog::getSaveFileName(this,
                                                 tr("Save Image"), ".");
-    QImage image(scene()->width(), scene()->height(), QImage::Format_ARGB32_Premultiplied);
-    image.fill(Qt::white);
-    QPainter painter(&image);
-    setRenderHint(QPainter::Antialiasing);
-    render(&painter);
-    image.save(filePath, "JPG");
+    save(filePath);
 }
 void Canvas::closeImageSlot() {
 
@@ -117,4 +106,15 @@ void Canvas::setImageSlot(QVector<unsigned char> imageVector) {
     setSceneRect(0, 0, image->width(), image->height());
     scene()->addPixmap(QPixmap::fromImage(*image));
     delete image;
+}
+void Canvas::save(const QString& path) {
+    QImage image(scene()->width(), scene()->height(), QImage::Format_ARGB32_Premultiplied);
+    image.fill(Qt::white);
+    QPainter painter(&image);
+    setRenderHint(QPainter::Antialiasing);
+    render(&painter);
+    image.save(filePath, "JPG");
+}
+void Canvas::saveImageToSlot(const QString& path) {
+    save(path);
 }
