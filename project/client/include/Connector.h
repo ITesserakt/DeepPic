@@ -31,6 +31,7 @@ private:
 
     QString address = "";
     QString token = "";
+    QString port = "";
 
 signals:
     void initSignal();
@@ -45,6 +46,7 @@ private slots:
 
 
     void addressChangedSlot(const QString &text);
+    void portChangedSlot(const QString &text);
     void tokenChangedSlot(const QString &text);
 
 };
