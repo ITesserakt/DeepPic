@@ -1,26 +1,19 @@
 #include "MainWindow.h"
-#include "Changer.h"
-#include "Palette.h"
 #include "QGraphicsView"
 #include "Connector.h"
 
 #include <QAction>
-#include <QIcon>
 #include <QMenu>
 #include <QMenuBar>
 #include <QPixmap>
 #include <QStatusBar>
 #include <QToolBar>
 
-// Temporary
-#include <fstream>
+#include <QFileDialog>
 
 #include <stdexcept>
 
-////
 #include <QImage>
-#include <QPixmap>
-////
 
 #include <iostream>
 
@@ -34,10 +27,10 @@ MainWindow::MainWindow(QWidget *parent) :
     scene = new PaintScene(this);
     connect(scene, &PaintScene::writeCurveSignal, this, &MainWindow::writeSlot);
     connect(this, &MainWindow::addCurve, scene, &PaintScene::readCurveSlot);
-    connect(this, &MainWindow::setImageSignal, canvas, &Canvas::setImageSlot);
-
-    connect(this, &MainWindow::saveImageToSignal, canvas, &Canvas::saveImageToSlot);
-    connect(this, &MainWindow::setImageFromSignal, canvas, &Canvas::setImageFromSlot);
+    //connect(this, &MainWindow::setImageSignal, this, &MainWindow::loadImage);
+//
+//    connect(this, &MainWindow::saveImageToSignal, canvas, &Canvas::saveImageToSlot);
+//    connect(this, &MainWindow::setImageFromSignal, canvas, &Canvas::setImageFromSlot);
 
     canvas = new Canvas;
     canvas->setScene(scene);
@@ -47,17 +40,17 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // MenuBar
     auto *file_open = new QAction("&Open", this);
-    connect(file_open, &QAction::triggered, canvas, &Canvas::openImageSlot);
-    auto *file_close = new QAction("&Close", this);
-    connect(file_close, &QAction::triggered, canvas, &Canvas::closeImageSlot);
+    connect(file_open, &QAction::triggered, this, &MainWindow::loadImage);
+//    auto *file_close = new QAction("&Close", this);
+//    connect(file_close, &QAction::triggered, canvas, &Canvas::closeImageSlot);
     auto *file_save = new QAction("&Save", this);
-    connect(file_save, &QAction::triggered, canvas, &Canvas::saveImageSlot);
+    connect(file_save, &QAction::triggered, this, &MainWindow::saveImage);
     auto *file_save_as = new QAction("&Save as", this);
-    connect(file_save_as, &QAction::triggered, canvas, &Canvas::saveAsImageSlot);
+    connect(file_save_as, &QAction::triggered, this, &MainWindow::saveAsImage);
     QMenu *file;
     file = menuBar()->addMenu("File");
     file->addAction(file_open);
-    file->addAction(file_close);
+//    file->addAction(file_close);
     file->addAction(file_save);
     file->addAction(file_save_as);
 
@@ -231,12 +224,12 @@ void MainWindow::execute(std::string &&message) {
 
     // TODO: if need to saveImage Image
     if (false) {
-        emit(saveImageToSignal("./path/file.png")); // <- TODO: change path
+        saveImageTo("./path/file.png"); // <- TODO: change path
     }
 
     // TODO: if need to setImage Image
     if (false) {
-        emit(setImageFromSignal("./path/file.png")); // <- TODO: change path
+        loadImageFrom("./path/file.png"); // <- TODO: change path
     }
 }
 
@@ -262,6 +255,49 @@ void MainWindow::writeSlot(std::string &message) {
         forDocumentConnection_->write(std::move(message));
     }
 }
+
+/// save/load logic
+void MainWindow::loadImage() {
+    QString path = QFileDialog::getOpenFileName(this,
+                                                tr("Open Image"), ".", tr("Image Files (*.png *.jpg *.bmp)"));
+    loadImageFrom(path);
+}
+void MainWindow::saveImage() {
+    if (filePath == nullptr) {
+        filePath = QFileDialog::getSaveFileName(this,
+                                                tr("Save Image"), ".");
+    }
+    saveImageTo(filePath);
+}
+void MainWindow::saveAsImage() {
+    filePath = QFileDialog::getSaveFileName(this,
+                                            tr("Save Image"), ".");
+    saveImageTo(filePath);
+}
+void MainWindow::loadImageFrom(const QString& path) {
+    auto *image = new QImage;
+    image->load(path);
+
+    if(image->height() < height()) {
+        setFixedHeight(image->height() + 16);  // 16 - slider height
+    }
+    if(image->width() < width()) {
+        setFixedWidth(image->width() + 16);
+    }
+
+    canvas->setSceneRect(0, 0, image->width(), image->height());
+    canvas->scene()->addPixmap(QPixmap::fromImage(*image));
+    delete image;
+}
+void MainWindow::saveImageTo(const QString &path) {
+    QImage image(canvas->scene()->width(), canvas->scene()->height(), QImage::Format_ARGB32_Premultiplied);
+    image.fill(Qt::white);
+    QPainter painter(&image);
+    canvas->setRenderHint(QPainter::Antialiasing);
+    canvas->render(&painter);
+    image.save(path, "JPG");
+}
+///
 
 //void MainWindow::resizeEvent(QResizeEvent *event)
 //{

@@ -53,9 +53,6 @@ signals:
     void saveImageToSignal(const QString& path);
     void setImageFromSignal(const QString& path);
 
-private:
-    long temporary_read_position = 0;
-
 private slots:
     void slotBrush(qreal brushSize = 10, const QColor& brushColor = Qt::red);
     void slotTimer();
@@ -65,6 +62,18 @@ private slots:
 public slots:
     void writeSlot(std::string& message);
 
+    /// save/load logic
+    void loadImage();
+    void saveImage();
+    void saveAsImage();
+    ///
+
+private:
+    /// save/load logic
+    QString filePath = nullptr;
+    void loadImageFrom(const QString& path);
+    void saveImageTo(const QString& path);
+    ///
 
 public:
     void execute(std::string&& message);
