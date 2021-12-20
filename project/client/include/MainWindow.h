@@ -66,7 +66,7 @@ public slots:
 
 private:
     /// save/load logic
-    QString filePath = nullptr;
+    QString filePath;
     void loadImageFrom(const QString& path);
     void saveImageTo(const QString& path);
     ///

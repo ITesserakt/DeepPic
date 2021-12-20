@@ -9,7 +9,7 @@ ParametersPanel::ParametersPanel(QWidget *parent) : QToolBar(parent) {
 };
 
 void ParametersPanel::setBrush(qreal brushSize, const QColor& brushColor) {
-    QWidget *dummy = new QWidget();
+    QWidget *dummy = new QWidget(this);
     dummy->setFixedWidth(40);
     addWidget(dummy);
 
@@ -20,7 +20,7 @@ void ParametersPanel::setBrush(qreal brushSize, const QColor& brushColor) {
     addSeparator();
 
 
-    Palette *palette = new Palette;
+    Palette *palette = new Palette(this);
     palette->SetColor(brushColor.red(), brushColor.green(), brushColor.blue());
 
     Changer *red_changer = new Changer("Red", brushColor.red(), 255, this);

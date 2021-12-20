@@ -8,7 +8,7 @@ class Brush : public QAction {
     Q_OBJECT
 
 public:
-    explicit Brush(qreal brushSize = 10, const QColor& brushColor = Qt::red, QWidget *parent = nullptr);
+    explicit Brush(qreal brushSize = 10, QWidget *parent = nullptr);
     ~Brush() = default;
 
 signals:

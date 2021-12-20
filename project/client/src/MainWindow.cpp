@@ -73,7 +73,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, &MainWindow::failedConnectSignal, connector, &Connector::failedConnectSlot);
     connect(this, &MainWindow::successfulConnectSignal, connector, &Connector::successfulConnectSlot);
     connect(this, &MainWindow::successfulShareSignal, connector, &Connector::successfulShareSlot);
-    toolsPanel = new ToolsPanel;
+
+    toolsPanel = new ToolsPanel(this);
     addToolBar(Qt::LeftToolBarArea, toolsPanel);
 
     connect(toolsPanel, &ToolsPanel::BrushTriggered, this, &MainWindow::slotBrush);
@@ -265,7 +266,7 @@ void MainWindow::loadImageFrom(const QString& path) {
     image->load(path);
 
     if(image->height() < height()) {
-        setFixedHeight(image->height() + 16);  // 16 - slider height
+        setFixedHeight(image->height() + 16);  // 16 - changerSlider height
     }
     if(image->width() < width()) {
         setFixedWidth(image->width() + 16);

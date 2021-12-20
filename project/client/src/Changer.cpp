@@ -15,24 +15,24 @@ Changer::Changer(QString name, int value, int max_value, QWidget *parent) :
     this->addWidget(size_label);
     size_label->setFixedWidth(name.length() * 9);
 
-    spin_box = new QSpinBox;
-    spin_box->setValue(value);
-    spin_box->setMaximum(max_value);
-    spin_box->setFixedWidth(50);
-    this->addWidget(spin_box);
+    changerSpinBox = new QSpinBox(this);
+    changerSpinBox->setValue(value);
+    changerSpinBox->setMaximum(max_value);
+    changerSpinBox->setFixedWidth(50);
+    this->addWidget(changerSpinBox);
 
-    slider = new QSlider(Qt::Horizontal);
-    slider->setFixedWidth(100);
-    slider->setValue(value);
-    slider->setMaximum(max_value);
-    this->addWidget(slider);
+    changerSlider = new QSlider(Qt::Horizontal, this);
+    changerSlider->setFixedWidth(100);
+    changerSlider->setValue(value);
+    changerSlider->setMaximum(max_value);
+    this->addWidget(changerSlider);
 
-    this->setFixedWidth(size_label->width() + spin_box->width() + slider->width() + 20);
-    std::cout << size_label->width() << " " << spin_box->width() << " " << slider->width();
+    this->setFixedWidth(size_label->width() + changerSpinBox->width() + changerSlider->width() + 20);
+    std::cout << size_label->width() << " " << changerSpinBox->width() << " " << changerSlider->width();
 
-    connect(slider, QOverload<int>::of(&QSlider::valueChanged), this,
+    connect(changerSlider, QOverload<int>::of(&QSlider::valueChanged), this,
             (&Changer::valueChangedSlot));
-    connect(spin_box, QOverload<int>::of(&QSpinBox::valueChanged), this,
+    connect(changerSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this,
             (&Changer::valueChangedSlot));
 
     this->setStyleSheet(QString("QToolBar {spacing: %1}").arg(5));
@@ -40,7 +40,6 @@ Changer::Changer(QString name, int value, int max_value, QWidget *parent) :
 
 }
 void Changer::valueChangedSlot(int value) {
-    _value = value;
-    spin_box->value() == value ? slider->setValue(value) : spin_box->setValue(value);
+    changerSpinBox->value() == value ? changerSlider->setValue(value) : changerSpinBox->setValue(value);
     emit valueChanged(value);
 }
