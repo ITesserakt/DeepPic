@@ -13,19 +13,7 @@ Canvas::Canvas(QWidget *parent) :
 void Canvas::openImageSlot() {
     QString path = QFileDialog::getOpenFileName(this,
                                             tr("Open Image"), ".", tr("Image Files (*.png *.jpg *.bmp)"));
-    auto *image = new QImage;
-    image->load(path);
-
-    if(image->height() < height()) {
-        setFixedHeight(image->height() + 16);  // 16 - slider height
-    }
-    if(image->width() < width()) {
-        setFixedWidth(image->width() + 16);
-    }
-
-    setSceneRect(0, 0, image->width(), image->height());
-    scene()->addPixmap(QPixmap::fromImage(*image));
-    delete image;
+    setImage(path);
 }
 
 void Canvas::saveImageSlot() {
@@ -33,12 +21,12 @@ void Canvas::saveImageSlot() {
         filePath = QFileDialog::getSaveFileName(this,
                                                     tr("Save Image"), ".");
     }
-    save(filePath);
+    saveImage(filePath);
 }
 void Canvas::saveAsImageSlot() {
     filePath = QFileDialog::getSaveFileName(this,
                                                 tr("Save Image"), ".");
-    save(filePath);
+    saveImage(filePath);
 }
 void Canvas::closeImageSlot() {
 
@@ -107,7 +95,7 @@ void Canvas::setImageSlot(QVector<unsigned char> imageVector) {
     scene()->addPixmap(QPixmap::fromImage(*image));
     delete image;
 }
-void Canvas::save(const QString& path) {
+void Canvas::saveImage(const QString& path) {
     QImage image(scene()->width(), scene()->height(), QImage::Format_ARGB32_Premultiplied);
     image.fill(Qt::white);
     QPainter painter(&image);
@@ -115,6 +103,27 @@ void Canvas::save(const QString& path) {
     render(&painter);
     image.save(path, "JPG");
 }
-void Canvas::saveImageToSlot(const QString& path) {
-    save(path);
+
+void Canvas::setImage(const QString &path) {
+    auto *image = new QImage;
+    image->load(path);
+
+    if(image->height() < height()) {
+        setFixedHeight(image->height() + 16);  // 16 - slider height
+    }
+    if(image->width() < width()) {
+        setFixedWidth(image->width() + 16);
+    }
+
+    setSceneRect(0, 0, image->width(), image->height());
+    scene()->addPixmap(QPixmap::fromImage(*image));
+    delete image;
 }
+
+void Canvas::saveImageToSlot(const QString& path) {
+    saveImage(path);
+}
+void Canvas::setImageFromSlot(const QString &path) {
+    setImage(path);
+}
+

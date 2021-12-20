@@ -19,16 +19,21 @@ public:
 
 public slots:
     void openImageSlot();
+
     void saveImageSlot();
     void saveAsImageSlot();
+
     void saveImageToSlot(const QString& path);
+    void setImageFromSlot(const QString& path);
+
     void closeImageSlot();
     void setImageSlot( const QVector<unsigned char> imageVector);
-    
+
 
 private:
     QString filePath = nullptr;
-    void save(const QString& path);
+    void saveImage(const QString& path);
+    void setImage(const QString& path);
 
     size_t default_width;
 };

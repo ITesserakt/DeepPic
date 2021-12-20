@@ -35,7 +35,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(scene, &PaintScene::writeCurveSignal, this, &MainWindow::writeSlot);
     connect(this, &MainWindow::addCurve, scene, &PaintScene::readCurveSlot);
     connect(this, &MainWindow::setImageSignal, canvas, &Canvas::setImageSlot);
-    connect(this, &MainWindow::saveImageToSignal, canvas, &Canvas::setImageSlot);
+
+    connect(this, &MainWindow::saveImageToSignal, canvas, &Canvas::saveImageToSlot);
+    connect(this, &MainWindow::setImageFromSignal, canvas, &Canvas::setImageFromSlot);
 
     canvas = new Canvas;
     canvas->setScene(scene);
@@ -227,15 +229,14 @@ void MainWindow::execute(std::string &&message) {
 //        emit(addTestPoint(msg));
     }
 
-    // TODO: if need to save Image
+    // TODO: if need to saveImage Image
     if (false) {
         emit(saveImageToSignal("./path/file.png")); // <- TODO: change path
     }
 
-    // TODO: if need to set Image
+    // TODO: if need to setImage Image
     if (false) {
-        std::vector<unsigned char> imageVector; // <- for writing
-        emit(setImageSignal(QVector<unsigned char>::fromStdVector(imageVector)));
+        emit(setImageFromSignal("./path/file.png")); // <- TODO: change path
     }
 }
 
