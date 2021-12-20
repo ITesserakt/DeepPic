@@ -73,13 +73,15 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, &MainWindow::failedConnectSignal, connector, &Connector::failedConnectSlot);
     connect(this, &MainWindow::successfulConnectSignal, connector, &Connector::successfulConnectSlot);
     connect(this, &MainWindow::successfulShareSignal, connector, &Connector::successfulShareSlot);
+    toolsPanel = new ToolsPanel;
+    addToolBar(Qt::LeftToolBarArea, toolsPanel);
 
     connect(toolsPanel, &ToolsPanel::BrushTriggered, this, &MainWindow::slotBrush);
 
     //  Status bar
     statusBar()->showMessage("Status bar");
 
-
+    timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &MainWindow::slotTimer);
     timer->start(500);
     serverConnection_ = std::make_unique<ServerConnection>(std::string("127.0.0.1"), 8080, ServerConnectionCallbacks{
@@ -88,8 +90,10 @@ MainWindow::MainWindow(QWidget *parent) :
     });
 
     serverConnection_->start();
-    timer = new QTimer(this);
+
 }
+
+MainWindow::~MainWindow() {}
 
 void MainWindow::slotTimer() {
     scene->setSceneRect(0, 0, canvas->width() - 16, canvas->height() - 16);
@@ -103,20 +107,20 @@ void MainWindow::slotBrush(qreal brushSize, const QColor &brushColor) {
     } else {
         scene->SetBrush(brushSize, brushColor);
         parametersPanel->setBrush(brushSize, brushColor);
-        connect(parametersPanel, &ParametersPanel::BrushSizeChanged, scene, &PaintScene::SetBrushSize);
-        connect(parametersPanel, &ParametersPanel::BrushSizeChanged, toolsPanel, &ToolsPanel::SetBrushSizeSlot);
+        connect(parametersPanel,&ParametersPanel::BrushSizeChanged, scene, &PaintScene::SetBrushSize);
+        connect(parametersPanel,&ParametersPanel::BrushSizeChanged, toolsPanel, &ToolsPanel::SetBrushSizeSlot);
 
-        connect(parametersPanel, &ParametersPanel::BrushRedChanged, scene, &PaintScene::SetRedSlot);
-        connect(parametersPanel, &ParametersPanel::BrushRedChanged, toolsPanel, &ToolsPanel::SetBrushRedSlot);
+        connect(parametersPanel,&ParametersPanel::BrushRedChanged, scene, &PaintScene::SetRedSlot);
+        connect(parametersPanel,&ParametersPanel::BrushRedChanged, toolsPanel, &ToolsPanel::SetBrushRedSlot);
 
-        connect(parametersPanel, &ParametersPanel::BrushGreenChanged, scene, &PaintScene::SetGreenSlot);
-        connect(parametersPanel, &ParametersPanel::BrushGreenChanged, toolsPanel, &ToolsPanel::SetBrushGreenSlot);
+        connect(parametersPanel,&ParametersPanel::BrushGreenChanged, scene, &PaintScene::SetGreenSlot);
+        connect(parametersPanel,&ParametersPanel::BrushGreenChanged, toolsPanel, &ToolsPanel::SetBrushGreenSlot);
 
-        connect(parametersPanel, &ParametersPanel::BrushBlueChanged, scene, &PaintScene::SetBlueSlot);
-        connect(parametersPanel, &ParametersPanel::BrushBlueChanged, toolsPanel, &ToolsPanel::SetBrushBlueSlot);
+        connect(parametersPanel,&ParametersPanel::BrushBlueChanged, scene, &PaintScene::SetBlueSlot);
+        connect(parametersPanel,&ParametersPanel::BrushBlueChanged, toolsPanel, &ToolsPanel::SetBrushBlueSlot);
 
-        connect(parametersPanel, &ParametersPanel::BrushOpacityChanged, scene, &PaintScene::SetTransparencySlot);
-        connect(parametersPanel, &ParametersPanel::BrushOpacityChanged, toolsPanel, &ToolsPanel::SetBrushOpacitySlot);
+        connect(parametersPanel,&ParametersPanel::BrushOpacityChanged, scene, &PaintScene::SetTransparencySlot);
+        connect(parametersPanel,&ParametersPanel::BrushOpacityChanged, toolsPanel, &ToolsPanel::SetBrushOpacitySlot);
     }
     scene->ChangeBrushStatus();
 }
