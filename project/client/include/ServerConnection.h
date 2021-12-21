@@ -8,7 +8,7 @@
 #include <condition_variable>
 #include <atomic>
 
-#define BUFFER_LENGTH 10000
+#define BUFFER_LENGTH 6000000
 #define END_STR "\r\n"
 
 #define SERVER_PORT 8080

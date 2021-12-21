@@ -23,10 +23,10 @@ endif ()
 
 set(SOURCES src/MainWindow.cpp src/PaintScene.cpp src/Palette.cpp src/Changer.cpp
         src/ToolsPanel.cpp src/ParametersPanel.cpp src/Brush.cpp src/Canvas.cpp
-        src/Connector.cpp src/ServerConnection.cpp)
+        src/Connector.cpp src/ServerConnection.cpp src/Base64.cpp)
 set(HEADER_FILES include/Palette.h include/MainWindow.h include/PaintScene.h include/Changer.h
         include/ToolsPanel.h include/ParametersPanel.h include/Brush.h include/Canvas.h
-        include/Connector.h include/ServerConnection.h ${Boost_INCLUDE_DIR})
+        include/Connector.h include/ServerConnection.h ${Boost_INCLUDE_DIR} include/Base64.h)
 
 #include_directories(include ${Boost_INCLUDE_DIR})
 #aux_source_directory(src SRC)

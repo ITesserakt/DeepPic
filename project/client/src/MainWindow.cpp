@@ -26,6 +26,8 @@
 
 #include <nlohmann/json.hpp>
 
+#include "Base64.h"
+
 using json = nlohmann::json;
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -213,6 +215,8 @@ void MainWindow::execute(std::string &&message) {
                 to_string(parse_message["address"]) + std::string(":") + to_string(parse_message["port"]) + std::string("|") +
                 to_string(parse_message["auth_token"]));
         std::cout << "// TODO: if joining succeeded" << std::endl;
+        json json_msg = {{"target", "get_document"}};
+        forDocumentConnection_->write(json_msg.dump());
         emit(successfulConnectSignal(auth_token));
     } else
 
@@ -224,16 +228,21 @@ void MainWindow::execute(std::string &&message) {
         emit(addCurve(command));
         //QString msg = "30";
 //        emit(addTestPoint(msg));
-    }
+    } else
 
     // TODO: if need get Image
-    if (false) {
+    if (parse_message["target"] == "get_document" && parse_message["status"].is_null()) {
         std::vector<unsigned char> imageVector = canvas->GetImageVector().toStdVector();
-    }
+        std::string base64_image = base64_encode(&imageVector.front(), imageVector.size());
+        std::cout << "base64 image size = " << base64_image.size() << std::endl;
+        json json_msg = {{"status", "OK"}, {"target", "get_document"}, {"document", std::move(base64_image)}};
+
+        forDocumentConnection_->write(json_msg.dump());
+    } else
 
     // TODO: if need set Image
-    if (false) {
-        std::vector<unsigned char> imageVector; // <- for writing
+    if (parse_message["target"] == "get_document" && !parse_message["status"].is_null() && parse_message["status"] == "OK") {
+        std::vector<unsigned char> imageVector = base64_decode(parse_message["document"]); // <- for writing
         emit(setImageSignal(QVector<unsigned char>::fromStdVector(imageVector)));
     }
 }

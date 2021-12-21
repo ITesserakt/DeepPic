@@ -61,7 +61,7 @@ void ServerConnection::write(std::string &&message) {
     request_.body() = message;
     request_.prepare_payload();
 
-    std::cout << "ServerConnection::write()" << std::endl;
+    //std::cout << "ServerConnection::write(), message = " << message << std::endl;
 
     boost::beast::http::async_write(socket_, request_, [this](boost::system::error_code err, size_t bytes_transferred) {
         boost::ignore_unused(bytes_transferred);
