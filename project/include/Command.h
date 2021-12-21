@@ -48,9 +48,9 @@ private:
 
     explicit GetDocument(std::vector<std::shared_ptr<Connection>> *connections);
 
-    void getDocumentFromClient();
+    void getDocumentFromClient(const std::shared_ptr<Connection>& author);
 
-    void handleGetDocumentFromClient(std::shared_ptr<Connection> &connection);
+    void handleGetDocumentFromClient(std::shared_ptr<Connection> &connection, const std::shared_ptr<Connection>& author);
 
     void sendDocumentToNewClients(std::string &&document);
 

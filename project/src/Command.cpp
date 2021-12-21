@@ -38,7 +38,7 @@ bool GetDocument::do_command(json &command, std::shared_ptr<Connection> author) 
             return true;
         } else if (!command.contains("status")) { // если пришел запрос на получение документа
             clientsToGetDocument_.push_back(author); // добавляем автора запроса в вектор тех, кому нужен документ
-            getDocumentFromClient(); // и запрашиваем документ у одного из участников
+            getDocumentFromClient(author); // и запрашиваем документ у одного из участников
             return true;
         }
     }
@@ -46,15 +46,25 @@ bool GetDocument::do_command(json &command, std::shared_ptr<Connection> author) 
     return false;
 }
 
-void GetDocument::getDocumentFromClient() {
+void GetDocument::getDocumentFromClient(const std::shared_ptr<Connection>& author) {
     std::string command_dump = CommandConstructor::getDocumentClient().dump();
-    (*(connections_->begin()))->write(command_dump,
-                                      [this](std::shared_ptr<Connection> connection) { this->handleGetDocumentFromClient(connection); });
+    if (!connections_->empty()) {
+        auto it = connections_->begin();
+        while (*it == author) {
+            it++;
+        }
+        if (it != connections_->end()) {
+            (*(connections_->begin()))->write(command_dump,
+                                              [this, author](std::shared_ptr<Connection> connection) {
+                                                  this->handleGetDocumentFromClient(connection, author);
+                                              });
+        }
+    }
 }
 
-void GetDocument::handleGetDocumentFromClient(std::shared_ptr<Connection> &connection) {
+void GetDocument::handleGetDocumentFromClient(std::shared_ptr<Connection> &connection, const std::shared_ptr<Connection>& author) {
     if (connection == nullptr) {
-        getDocumentFromClient();
+        getDocumentFromClient(author);
     }
 }
 
