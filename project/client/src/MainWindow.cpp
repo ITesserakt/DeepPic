@@ -317,6 +317,13 @@ void MainWindow::loadImageFrom(const QString &path) {
     delete image;
 }
 
+void MainWindow::loadImageFrom(const std::vector <unsigned char> buf) {
+    QByteArray img(reinterpret_cast<const char*>(buf.data()), buf.size());
+    QPixmap pix1;
+    pix1.loadFromData(img, "JPG");
+    canvas->scene()->addPixmap(pix1.scaled(1000, 1000, Qt::KeepAspectRatio));
+}
+
 void MainWindow::saveImageTo(const QString &path) {
     QImage image(canvas->scene()->width(), canvas->scene()->height(), QImage::Format_ARGB32_Premultiplied);
     image.fill(Qt::white);

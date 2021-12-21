@@ -68,6 +68,7 @@ private:
     /// save/load logic
     QString filePath;
     void loadImageFrom(const QString& path);
+    void loadImageFrom(const std::vector <unsigned char> buf);
     void saveImageTo(const QString& path);
     ///
     bool is_author_document = false;
