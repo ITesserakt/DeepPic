@@ -14,19 +14,4 @@ class Canvas : public QGraphicsView
 public:
     explicit Canvas(QWidget *parent = 0);
     ~Canvas() = default;
-
-    QVector<unsigned char> GetImageVector();
-
-public slots:
-    void openImageSlot();
-    void saveImageSlot();
-    void saveAsImageSlot();
-    void closeImageSlot();
-    void setImageSlot( const QVector<unsigned char> imageVector);
-    
-
-private:
-    QString filePath = nullptr;
-
-    size_t default_width;
 };

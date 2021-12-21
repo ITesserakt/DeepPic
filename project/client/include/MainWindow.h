@@ -48,10 +48,6 @@ signals:
     void successfulConnectSignal(const QString& message);
 
     void addCurve(const QString& message);
-    void setImageSignal(const QVector<unsigned char> imageVector);
-
-private:
-    long temporary_read_position = 0;
 
 private slots:
     void slotBrush(qreal brushSize = 10, const QColor& brushColor = Qt::red);
@@ -62,6 +58,19 @@ private slots:
 public slots:
     void writeSlot(std::string& message);
 
+    /// save/load logic
+    void loadImage();
+    void saveImage();
+    void saveAsImage();
+    ///
+
+private:
+    /// save/load logic
+    QString filePath;
+    void loadImageFrom(const QString& path);
+    void saveImageTo(const QString& path);
+    ///
+    bool is_author_document = false;
 
 public:
     void execute(std::string&& message);

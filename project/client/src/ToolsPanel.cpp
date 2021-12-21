@@ -11,7 +11,7 @@
 ToolsPanel::ToolsPanel(QWidget *parent) : QToolBar(parent) {
     QPixmap brush_pm("brush.png");
 
-    auto *brush = new Brush(20, Qt::darkGreen, this);
+    auto *brush = new Brush(20, this);
     addAction(brush);
 
     QPixmap pixmap(brush_pm.size());

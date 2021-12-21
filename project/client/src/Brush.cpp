@@ -7,8 +7,8 @@
 
 #include <cassert>
 
-Brush::Brush(qreal brushSize, const QColor& brushColor, QWidget *parent) :
-    brushSize(brushSize), brushColor(brushColor), QAction(parent) {
+Brush::Brush(qreal brushSize, QWidget *parent) :
+    brushSize(brushSize), brushColor(Qt::red), QAction(parent) {
     assert(parent != nullptr);
     connect(this, &QAction::triggered, this, &Brush::BrushTriggeredSlot);
 

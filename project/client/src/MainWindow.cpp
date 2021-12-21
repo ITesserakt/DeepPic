@@ -1,30 +1,24 @@
 #include "MainWindow.h"
-#include "Changer.h"
-#include "Palette.h"
 #include "QGraphicsView"
 #include "Connector.h"
 
 #include <QAction>
-#include <QIcon>
 #include <QMenu>
 #include <QMenuBar>
 #include <QPixmap>
 #include <QStatusBar>
 #include <QToolBar>
 
-// Temporary
-#include <fstream>
+#include <QFileDialog>
 
 #include <stdexcept>
 
-////
 #include <QImage>
-#include <QPixmap>
-////
 
 #include <iostream>
 
 #include <nlohmann/json.hpp>
+#include <fstream>
 
 #include "Base64.h"
 
@@ -32,31 +26,27 @@ using json = nlohmann::json;
 
 MainWindow::MainWindow(QWidget *parent) :
         QMainWindow(parent) {
+    setFixedSize(1000, 800);
 
     scene = new PaintScene(this);
-    connect(scene, &PaintScene::writeCurveSignal, this, &MainWindow::writeSlot);
-    connect(this, &MainWindow::addCurve, scene, &PaintScene::readCurveSlot);
-    connect(this, &MainWindow::setImageSignal, canvas, &Canvas::setImageSlot);
-
-    canvas = new Canvas;
+    canvas = new Canvas(this);
     canvas->setScene(scene);
 
     setCentralWidget(canvas);
 
+    connect(scene, &PaintScene::writeCurveSignal, this, &MainWindow::writeSlot);
+    connect(this, &MainWindow::addCurve, scene, &PaintScene::readCurveSlot);
 
     // MenuBar
     auto *file_open = new QAction("&Open", this);
-    connect(file_open, &QAction::triggered, canvas, &Canvas::openImageSlot);
-    auto *file_close = new QAction("&Close", this);
-    connect(file_close, &QAction::triggered, canvas, &Canvas::closeImageSlot);
+    connect(file_open, &QAction::triggered, this, &MainWindow::loadImage);
     auto *file_save = new QAction("&Save", this);
-    connect(file_save, &QAction::triggered, canvas, &Canvas::saveImageSlot);
+    connect(file_save, &QAction::triggered, this, &MainWindow::saveImage);
     auto *file_save_as = new QAction("&Save as", this);
-    connect(file_save_as, &QAction::triggered, canvas, &Canvas::saveAsImageSlot);
+    connect(file_save_as, &QAction::triggered, this, &MainWindow::saveAsImage);
     QMenu *file;
     file = menuBar()->addMenu("File");
     file->addAction(file_open);
-    file->addAction(file_close);
     file->addAction(file_save);
     file->addAction(file_save_as);
 
@@ -75,9 +65,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // ToolBars
     parametersPanel = new ParametersPanel(this);
     addToolBar(parametersPanel);
-    parameters_panel = new QToolBar;
-    addToolBar(parameters_panel);
-    parameters_panel->setFixedHeight(40);
+    parametersPanel->setFixedHeight(40);
 
     connector = new Connector(this);
     addToolBar(Qt::RightToolBarArea, connector);
@@ -89,19 +77,15 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, &MainWindow::successfulConnectSignal, connector, &Connector::successfulConnectSlot);
     connect(this, &MainWindow::successfulShareSignal, connector, &Connector::successfulShareSlot);
 
-
-    toolsPanel = new ToolsPanel;
+    toolsPanel = new ToolsPanel(this);
     addToolBar(Qt::LeftToolBarArea, toolsPanel);
 
     connect(toolsPanel, &ToolsPanel::BrushTriggered, this, &MainWindow::slotBrush);
-    //connect(this, &MainWindow::addCurve, scene, &PaintScene::PaintCurveSlot);
-    //connect(scene, &PaintScene::PushCurve, this, &MainWindow::TemporaryWriterSlot);
-
 
     //  Status bar
     statusBar()->showMessage("Status bar");
 
-    timer = new QTimer();
+    timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &MainWindow::slotTimer);
     timer->start(500);
     serverConnection_ = std::make_unique<ServerConnection>(std::string("127.0.0.1"), 8080, ServerConnectionCallbacks{
@@ -110,10 +94,10 @@ MainWindow::MainWindow(QWidget *parent) :
     });
 
     serverConnection_->start();
+
 }
 
-MainWindow::~MainWindow() {
-}
+MainWindow::~MainWindow() {}
 
 void MainWindow::slotTimer() {
     scene->setSceneRect(0, 0, canvas->width() - 16, canvas->height() - 16);
@@ -127,20 +111,20 @@ void MainWindow::slotBrush(qreal brushSize, const QColor &brushColor) {
     } else {
         scene->SetBrush(brushSize, brushColor);
         parametersPanel->setBrush(brushSize, brushColor);
-        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushSizeChanged), scene, &PaintScene::SetBrushSize);
-        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushSizeChanged), toolsPanel, &ToolsPanel::SetBrushSizeSlot);
+        connect(parametersPanel, &ParametersPanel::BrushSizeChanged, scene, &PaintScene::SetBrushSize);
+        connect(parametersPanel, &ParametersPanel::BrushSizeChanged, toolsPanel, &ToolsPanel::SetBrushSizeSlot);
 
-        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushRedChanged), scene, &PaintScene::SetRedSlot);
-        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushRedChanged), toolsPanel, &ToolsPanel::SetBrushRedSlot);
+        connect(parametersPanel, &ParametersPanel::BrushRedChanged, scene, &PaintScene::SetRedSlot);
+        connect(parametersPanel, &ParametersPanel::BrushRedChanged, toolsPanel, &ToolsPanel::SetBrushRedSlot);
 
-        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushGreenChanged), scene, &PaintScene::SetGreenSlot);
-        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushGreenChanged), toolsPanel, &ToolsPanel::SetBrushGreenSlot);
+        connect(parametersPanel, &ParametersPanel::BrushGreenChanged, scene, &PaintScene::SetGreenSlot);
+        connect(parametersPanel, &ParametersPanel::BrushGreenChanged, toolsPanel, &ToolsPanel::SetBrushGreenSlot);
 
-        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushBlueChanged), scene, &PaintScene::SetBlueSlot);
-        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushBlueChanged), toolsPanel, &ToolsPanel::SetBrushBlueSlot);
+        connect(parametersPanel, &ParametersPanel::BrushBlueChanged, scene, &PaintScene::SetBlueSlot);
+        connect(parametersPanel, &ParametersPanel::BrushBlueChanged, toolsPanel, &ToolsPanel::SetBrushBlueSlot);
 
-        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushOpacityChanged), scene, &PaintScene::SetTransparencySlot);
-        connect(parametersPanel, QOverload<int>::of(&ParametersPanel::BrushOpacityChanged), toolsPanel, &ToolsPanel::SetBrushOpacitySlot);
+        connect(parametersPanel, &ParametersPanel::BrushOpacityChanged, scene, &PaintScene::SetTransparencySlot);
+        connect(parametersPanel, &ParametersPanel::BrushOpacityChanged, toolsPanel, &ToolsPanel::SetBrushOpacitySlot);
     }
     scene->ChangeBrushStatus();
 }
@@ -215,8 +199,10 @@ void MainWindow::execute(std::string &&message) {
                 to_string(parse_message["address"]) + std::string(":") + to_string(parse_message["port"]) + std::string("|") +
                 to_string(parse_message["auth_token"]));
         std::cout << "// TODO: if joining succeeded" << std::endl;
-        json json_msg = {{"target", "get_document"}};
-        forDocumentConnection_->write(json_msg.dump());
+        if (!is_author_document) {
+            json json_msg = {{"target", "get_document"}};
+            forDocumentConnection_->write(json_msg.dump());
+        }
         emit(successfulConnectSignal(auth_token));
     } else
 
@@ -230,20 +216,44 @@ void MainWindow::execute(std::string &&message) {
 //        emit(addTestPoint(msg));
     } else
 
-    // TODO: if need get Image
+        /*
+        // TODO: if need get Image
+        if (parse_message["target"] == "get_document" && parse_message["status"].is_null()) {
+            std::vector<unsigned char> imageVector = canvas->GetImageVector().toStdVector();
+            std::string base64_image = base64_encode(&imageVector.front(), imageVector.size());
+            std::cout << "base64 image size = " << base64_image.size() << std::endl;
+            json json_msg = {{"status", "OK"}, {"target", "get_document"}, {"document", std::move(base64_image)}};
+
+            forDocumentConnection_->write(json_msg.dump());
+        } else
+
+        // TODO: if need set Image
+        if (parse_message["target"] == "get_document" && !parse_message["status"].is_null() && parse_message["status"] == "OK") {
+            std::vector<unsigned char> imageVector = base64_decode(parse_message["document"]); // <- for writing
+            emit(setImageSignal(QVector<unsigned char>::fromStdVector(imageVector)));
+        */
+
+        // TODO: if need to save Image
     if (parse_message["target"] == "get_document" && parse_message["status"].is_null()) {
-        std::vector<unsigned char> imageVector = canvas->GetImageVector().toStdVector();
-        std::string base64_image = base64_encode(&imageVector.front(), imageVector.size());
-        std::cout << "base64 image size = " << base64_image.size() << std::endl;
-        json json_msg = {{"status", "OK"}, {"target", "get_document"}, {"document", std::move(base64_image)}};
-
+        saveImageTo("../data/canvas.jpg"); // <- TODO: change path
+        // получаем массив байт из изображения
+        std::ifstream input("../data/canvas.jpg", std::ios::binary);
+        std::vector<unsigned char> image_vector(std::istreambuf_iterator<char>(input), {});
+        std::string base64_image = base64_encode(&image_vector.front(), image_vector.size());
+        json json_msg = {{"status",   "OK"},
+                         {"target",   "get_document"},
+                         {"document", std::move(base64_image)}};
         forDocumentConnection_->write(json_msg.dump());
-    } else
+        //json json_msg = {{"status", "OK"}, {"target", "get_document"}, {"document", "derzhi zhabu"}};
 
-    // TODO: if need set Image
+        //forDocumentConnection_->write(json_msg.dump());
+    } else
+        // TODO: if need to setImage Image
     if (parse_message["target"] == "get_document" && !parse_message["status"].is_null() && parse_message["status"] == "OK") {
-        std::vector<unsigned char> imageVector = base64_decode(parse_message["document"]); // <- for writing
-        emit(setImageSignal(QVector<unsigned char>::fromStdVector(imageVector)));
+        std::vector<unsigned char> image_vector = base64_decode(parse_message["document"]);
+        std::ofstream outfile("../data/canvas.jpg", std::ios::out | std::ios::binary);
+        outfile.write(reinterpret_cast<const char *>(image_vector.data()), image_vector.size());
+        loadImageFrom("../data/canvas.jpg"); // <- TODO: change path
     }
 }
 
@@ -254,14 +264,13 @@ void MainWindow::writeSlot(std::string &message) {
     std::cerr << "MainWindow::writeSlot, message = " << message << std::endl;
     if (json_message["target"] == "sharing_document" && serverConnection_) {
         serverConnection_->write(std::move(message));
+        is_author_document = true;
     } else if (forDocumentConnection_) {
         forDocumentConnection_->write(std::move(message));
     } else {
-        std::string address_string = to_string(json_message["address"]);
-        std::string address = address_string.substr(1, address_string.find(':') - 1);
-        std::string port = address_string.substr(address_string.find(':') + 1, address_string.size() - address_string.find(':') - 2);
-        std::cout << address << " " << port << std::endl;
-        forDocumentConnection_ = std::make_unique<ServerConnection>(std::move(address), std::stoi(port), ServerConnectionCallbacks{
+        is_author_document = false;
+        std::string port = json_message["port"];
+        forDocumentConnection_ = std::make_unique<ServerConnection>(json_message["address"], std::stoi(port), ServerConnectionCallbacks{
                 [this](std::string &&message) { this->execute(std::move(message)); },
                 {}
         });
@@ -269,6 +278,53 @@ void MainWindow::writeSlot(std::string &message) {
         forDocumentConnection_->write(std::move(message));
     }
 }
+
+/// save/load logic
+void MainWindow::loadImage() {
+    QString path = QFileDialog::getOpenFileName(this,
+                                                tr("Open Image"), ".", tr("Image Files (*.png *.jpg *.bmp)"));
+    loadImageFrom(path);
+}
+
+void MainWindow::saveImage() {
+    if (filePath == nullptr) {
+        filePath = QFileDialog::getSaveFileName(this,
+                                                tr("Save Image"), ".");
+    }
+    saveImageTo(filePath);
+}
+
+void MainWindow::saveAsImage() {
+    filePath = QFileDialog::getSaveFileName(this,
+                                            tr("Save Image"), ".");
+    saveImageTo(filePath);
+}
+
+void MainWindow::loadImageFrom(const QString &path) {
+    auto *image = new QImage;
+    image->load(path);
+
+    if (image->height() < height()) {
+        setFixedHeight(image->height() + 16);  // 16 - changerSlider height
+    }
+    if (image->width() < width()) {
+        setFixedWidth(image->width() + 16);
+    }
+
+    canvas->setSceneRect(0, 0, image->width(), image->height());
+    canvas->scene()->addPixmap(QPixmap::fromImage(*image));
+    delete image;
+}
+
+void MainWindow::saveImageTo(const QString &path) {
+    QImage image(canvas->scene()->width(), canvas->scene()->height(), QImage::Format_ARGB32_Premultiplied);
+    image.fill(Qt::white);
+    QPainter painter(&image);
+    canvas->setRenderHint(QPainter::Antialiasing);
+    canvas->render(&painter);
+    image.save(path, "JPG");
+}
+///
 
 //void MainWindow::resizeEvent(QResizeEvent *event)
 //{

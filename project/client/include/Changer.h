@@ -16,10 +16,9 @@ public:
     ~Changer() = default;
 
 private:
-    int _value;
 
-    QSpinBox *spin_box;
-    QSlider *slider;
+    QSpinBox *changerSpinBox;
+    QSlider *changerSlider;
 
 public:
 

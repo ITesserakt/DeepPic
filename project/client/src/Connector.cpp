@@ -29,9 +29,6 @@ void Connector::initSlot() {
     connectButton = new QPushButton("Connect to document", this);
     connect(connectButton, &QPushButton::clicked, this, &Connector::connectSlot);
 
-//    connect(this, &Connector::connectSignal, this, &Connector::connectSlot);
-//    connect(this, &Connector::shareSignal, this, &Connector::shareSlot);
-
     addWidget(shareButton);
     addWidget(connectButton);
 }
@@ -43,6 +40,13 @@ void Connector::connectSlot() {
     auto addressEdt = new QLineEdit(this);
     connect(addressEdt, &QLineEdit::textEdited, this, &Connector::addressChangedSlot);
     addWidget(addressEdt);
+
+    auto portLbl = new QLabel("Port:", this);
+    addWidget(portLbl);
+    auto portEdt = new QLineEdit(this);
+    connect(portEdt, &QLineEdit::textEdited, this, &Connector::portChangedSlot);
+    addWidget(portEdt);
+
     auto tokenLbl = new QLabel("Token:", this);
     addWidget(tokenLbl);
     auto tokenEdt = new QLineEdit(this);
@@ -69,15 +73,20 @@ void Connector::addressChangedSlot(const QString &text) {
     address = text;
 }
 
+void Connector::portChangedSlot(const QString &text) {
+    port = text;
+}
+
 void Connector::tokenChangedSlot(const QString &text) {
     token = text;
 }
 
 void Connector::writeConnectionSlot() {
-    // TODO: 2) change connection message
+    // TODO: 2) need to add port
     json message_json = {{"target",     "auth"},
                          {"auth_token", token.toStdString()},
-                         {"address",    address.toStdString()}};
+                         {"address",    address.toStdString()},
+                         {"port", port.toStdString()}};
     std::string message = message_json.dump();
     emit(writeSignal(message));
 }
@@ -129,7 +138,7 @@ void Connector::successfulShareSlot(const QString& message) {
     auto label = new QLabel(this);
 
     clear();
-    QString msg = "You're sharing the document.\nAddress: " + address + "\nToken: " + token;
+    QString msg = "You're sharing the document.\nAddress: " + address + "\nPort: " + port + "\nToken: " + token;
     label->setText(msg);
     addWidget(label);
     addWidget(canselButton);
@@ -143,8 +152,9 @@ void Connector::successfulConnectSlot(const QString &message) {
     auto label = new QLabel(this);
 
     clear();
-    QString msg = "You've joined the document.\nAddress: " + address + "\nToken: " + token;
+    QString msg = "You've joined the document.\nAddress: " + address + "\nPort: " + port + "\nToken: " + token;
     label->setText(msg);
     addWidget(label);
     addWidget(canselButton);
 }
+
