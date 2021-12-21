@@ -235,9 +235,9 @@ void MainWindow::execute(std::string &&message) {
 
         // TODO: if need to save Image
     if (parse_message["target"] == "get_document" && parse_message["status"].is_null()) {
-        saveImageTo("../data/canvas.jpg"); // <- TODO: change path
+        saveImageTo("../data/canvas1.jpg"); // <- TODO: change path
         // получаем массив байт из изображения
-        std::ifstream input("../data/canvas.jpg", std::ios::binary);
+        std::ifstream input("../data/canvas1.jpg", std::ios::binary);
         std::vector<unsigned char> image_vector(std::istreambuf_iterator<char>(input), {});
         std::string base64_image = base64_encode(&image_vector.front(), image_vector.size());
         json json_msg = {{"status",   "OK"},
@@ -251,9 +251,9 @@ void MainWindow::execute(std::string &&message) {
         // TODO: if need to setImage Image
     if (parse_message["target"] == "get_document" && !parse_message["status"].is_null() && parse_message["status"] == "OK") {
         std::vector<unsigned char> image_vector = base64_decode(parse_message["document"]);
-        std::ofstream outfile("../data/canvas.jpg", std::ios::out | std::ios::binary);
+        std::ofstream outfile("../data/canvas2.jpg", std::ios::out | std::ios::binary);
         outfile.write(reinterpret_cast<const char *>(image_vector.data()), image_vector.size());
-        loadImageFrom("../data/canvas.jpg"); // <- TODO: change path
+        loadImageFrom("../data/canvas2.jpg"); // <- TODO: change path
     }
 }
 
@@ -305,10 +305,10 @@ void MainWindow::loadImageFrom(const QString &path) {
     image->load(path);
 
     if (image->height() < height()) {
-        setFixedHeight(image->height() + 16);  // 16 - changerSlider height
+        canvas->setFixedHeight(image->height() + 16);  // 16 - changerSlider height
     }
     if (image->width() < width()) {
-        setFixedWidth(image->width() + 16);
+        canvas->setFixedWidth(image->width() + 16);
     }
 
     canvas->setSceneRect(0, 0, image->width(), image->height());
