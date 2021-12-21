@@ -102,6 +102,7 @@ MainWindow::~MainWindow() {}
 void MainWindow::slotTimer() {
     scene->setSceneRect(0, 0, canvas->width() - 16, canvas->height() - 16);
     timer->stop();
+    canvas->update();
 }
 
 void MainWindow::slotBrush(qreal brushSize, const QColor &brushColor) {
