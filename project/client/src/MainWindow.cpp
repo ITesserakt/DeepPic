@@ -301,6 +301,7 @@ void MainWindow::saveAsImage() {
 }
 
 void MainWindow::loadImageFrom(const QString &path) {
+    timer->start(500);
     auto *image = new QImage;
     image->load(path);
 
