@@ -14,7 +14,7 @@ link_directories(${Boost_LIBRARY_DIR})
 
 find_package(nlohmann_json 3.2.0 REQUIRED)
 
-set(WITH_SANITIZER ON)
+set(WITH_SANITIZER OFF)
 if (WITH_SANITIZER)
     add_compile_options(-fsanitize=address)
     add_link_options(-fsanitize=address)
