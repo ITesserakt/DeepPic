@@ -86,7 +86,7 @@ void Connector::writeConnectionSlot() {
     json message_json = {{"target",     "auth"},
                          {"auth_token", token.toStdString()},
                          {"address",    address.toStdString()},
-                         {"port", port.toStdString()}};
+                         {"port",       port.toStdString()}};
     std::string message = message_json.dump();
     emit(writeSignal(message));
 }
@@ -121,17 +121,22 @@ void Connector::failedConnectSlot() {
     addWidget(canselButton);
 }
 
-void separate(const QString& message, QString& l, QString& r, char separator) {
-
-    l = QString::fromStdString(message.toStdString().substr(0, message.toStdString().find(separator))); // rewrite
-    r = QString::fromStdString(message.toStdString().substr(message.toStdString().find(separator) + 1, message.size() - 1));
+void separate(const QString &message, QString &address, QString &port, QString &token, char separator) {
+    int first_sep = 0;
+    int second_sep = 0;
+    while (message[first_sep++] != separator);
+    second_sep = first_sep;
+    while (message[second_sep++] != separator);
+    address = QString::fromStdString(message.toStdString().substr(1, first_sep - 3));
+    port = QString::fromStdString(message.toStdString().substr(first_sep, second_sep - first_sep - 1));
+    token = QString::fromStdString(message.toStdString().substr(second_sep + 1, message.size() - second_sep - 2));
 }
 
-void Connector::successfulShareSlot(const QString& message) {
+void Connector::successfulShareSlot(const QString &message) {
 //    std::string separator = "|";
 //    address = message.substr(0, message.find(separator));
 //    token = message.substr(message.find(separator) + 1, message.size() - 1);
-    separate(message, address, token, '|');
+    separate(message, address, port, token, '|');
 
     canselButton = new QPushButton("Cansel", this);
     connect(canselButton, &QPushButton::clicked, this, &Connector::initSlot);
@@ -145,7 +150,7 @@ void Connector::successfulShareSlot(const QString& message) {
 }
 
 void Connector::successfulConnectSlot(const QString &message) {
-    separate(message, address, token, '|');
+    separate(message, address, port, token, '|');
 
     canselButton = new QPushButton("Cansel", this);
     connect(canselButton, &QPushButton::clicked, this, &Connector::initSlot);

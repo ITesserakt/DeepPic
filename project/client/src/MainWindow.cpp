@@ -179,7 +179,7 @@ void MainWindow::execute(std::string &&message) {
         forDocumentConnection_->start();
         std::cout << "// TODO: if sharing succeeded" << std::endl;
         QString auth_token = QString::fromStdString(
-                to_string(parse_message["address"]) + std::string(":") + to_string(parse_message["port"]) +
+                to_string(parse_message["address"]) + std::string("|") + to_string(parse_message["port"]) + std::string("|") +
                 to_string(parse_message["auth_token"]));
         json to_connect = {{"target",     "auth"},
                            {"auth_token", parse_message["auth_token"]}};
@@ -197,7 +197,7 @@ void MainWindow::execute(std::string &&message) {
         // TODO: if joining succeeded
     if (parse_message.contains("status") && parse_message["target"] == "auth" && parse_message["status"] == "OK") {
         QString auth_token = QString::fromStdString(
-                to_string(parse_message["address"]) + std::string(":") + to_string(parse_message["port"]) + std::string("|") +
+                to_string(parse_message["address"]) + std::string("|") + to_string(parse_message["port"]) + std::string("|") +
                 to_string(parse_message["auth_token"]));
         std::cout << "// TODO: if joining succeeded" << std::endl;
         if (!is_author_document) {
