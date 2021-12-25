@@ -11,20 +11,22 @@ class Palette : public QLabel
     Q_OBJECT
 
 public:
-    explicit Palette(QWidget *parent = 0);
+    explicit Palette(QWidget *parent = 0, size_t width = 73, size_t height = 15);
     ~Palette() = default;
 
     void SetColor(int red, int green, int blue, int opacity = 255);
+    const QColor& getColor() const;
 
-    //void SetGreen(int value);
+    //void setGreen(int value);
 private:
     QColor color;
     //QPixmap *pixmap;
 
 public slots:
-    void SetRed(int value);
-    void SetGreen(int value);
-    void SetBlue(int value);
+    void setRed(int value);
+    void setGreen(int value);
+    void setBlue(int value);
+    void setOpacity(int value);
 
 private slots:
     //void slotTimer();

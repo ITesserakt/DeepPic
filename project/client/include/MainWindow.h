@@ -50,6 +50,7 @@ signals:
     void addCurve(const QString& message);
 
 private slots:
+    void toolTriggered(const char tool, size_t size, const QColor& color);
     void slotBrush(qreal brushSize = 10, const QColor& brushColor = Qt::red);
     void slotTimer();
 
@@ -73,6 +74,8 @@ private:
     void waitForImage(const QString& path);
     ///
     bool is_author_document = false;
+
+    void standardPanelsConnect();
 
 public:
     void execute(std::string&& message);

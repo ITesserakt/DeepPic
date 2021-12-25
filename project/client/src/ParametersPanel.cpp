@@ -25,18 +25,18 @@ void ParametersPanel::setBrush(qreal brushSize, const QColor& brushColor) {
 
     Changer *red_changer = new Changer("Red", brushColor.red(), 255, this);
     connect(red_changer, QOverload<int>::of(&Changer::valueChanged), this, &ParametersPanel::BrushRedChangedSlot);
-    connect(red_changer, QOverload<int>::of(&Changer::valueChanged), palette, (&Palette::SetRed));
+    connect(red_changer, QOverload<int>::of(&Changer::valueChanged), palette, (&Palette::setRed));
     addWidget(red_changer);
 
     Changer *green_changer = new Changer("Green", brushColor.green(), 255, this);
     connect(green_changer, QOverload<int>::of(&Changer::valueChanged), this, &ParametersPanel::BrushGreenChangedSlot);
-    connect(green_changer, QOverload<int>::of(&Changer::valueChanged), palette, (&Palette::SetGreen));
+    connect(green_changer, QOverload<int>::of(&Changer::valueChanged), palette, (&Palette::setGreen));
 
     addWidget(green_changer);
 
     Changer *blue_changer = new Changer("Blue", brushColor.blue(), 255, this);
     connect(blue_changer, QOverload<int>::of(&Changer::valueChanged), this, &ParametersPanel::BrushBlueChangedSlot);
-    connect(blue_changer, QOverload<int>::of(&Changer::valueChanged), palette, (&Palette::SetBlue));
+    connect(blue_changer, QOverload<int>::of(&Changer::valueChanged), palette, (&Palette::setBlue));
 
     addWidget(blue_changer);
 

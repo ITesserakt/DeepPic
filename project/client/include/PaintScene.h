@@ -32,7 +32,8 @@ public:
     ~PaintScene() = default;
 
     void ChangeBrushStatus();
-    bool BrushStatus();
+    void setStatus(const char tool);
+    char getStatus() const;
     void SetBrushSize(qreal brush_size = 10);
     void SetBrush(qreal brushSize = 10, const QColor& brushColor = Qt::red);
 
@@ -58,8 +59,6 @@ private:
 
     QPoint previous_point;
 
-    std::vector<QPoint> curve;
-
 ////    command format:
 //      0 byte: command type
 //      1-2 byte: size
@@ -67,9 +66,11 @@ private:
 //      7-.. byte: points
     std::vector<unsigned char> command;
 
-    int32_t brush_size;
+    char currentTool;
 
-    QColor brushColor;
+    int32_t currentSize;
+
+    QColor currentColor;
 
 private:
     void executeBrush(const std::vector<unsigned char> &data);

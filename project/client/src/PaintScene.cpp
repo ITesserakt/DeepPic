@@ -25,13 +25,13 @@ void PaintScene::addPointToCommand(QPoint& point) {
 
 
 void PaintScene::mousePressEvent(QGraphicsSceneMouseEvent *event) {
-    if (is_brush) {
-        addEllipse(event->scenePos().x() - brush_size / 2,
-                   event->scenePos().y() - brush_size / 2,
-                   brush_size,
-                   brush_size,
+    if (currentTool == 'B') {
+        addEllipse(event->scenePos().x() - currentSize / 2,
+                   event->scenePos().y() - currentSize / 2,
+                   currentSize,
+                   currentSize,
                    QPen(Qt::NoPen),
-                   QBrush(brushColor));
+                   QBrush(currentColor));
         previous_point = event->scenePos().toPoint();
         command[0] = 'B';
         addPointToCommand(previous_point);
@@ -39,12 +39,12 @@ void PaintScene::mousePressEvent(QGraphicsSceneMouseEvent *event) {
 }
 
 void PaintScene::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
-    if (is_brush) {
+    if (currentTool == 'B') {
         addLine(previous_point.x(),
                 previous_point.y(),
                 event->scenePos().x(),
                 event->scenePos().y(),
-                QPen(brushColor, brush_size, Qt::SolidLine, Qt::RoundCap));
+                QPen(currentColor, currentSize, Qt::SolidLine, Qt::RoundCap));
         previous_point = event->scenePos().toPoint();
         addPointToCommand(previous_point);
     }
@@ -53,7 +53,7 @@ void PaintScene::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
 }
 
 void PaintScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
-    if (is_brush) {
+    if (currentTool == 'B') {
         char separator = ' ';
 
         std::basic_string<char> encodedCommand = base64_encode(&command.front(), command.size());
@@ -67,21 +67,23 @@ void PaintScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
 }
 
 void PaintScene::ChangeBrushStatus() {
-    is_brush = !is_brush;
+    if (currentTool != 'E') {
+        currentTool = 'E';
+    }
 }
-PaintScene::PaintScene(QObject *parent) : brush_size(10), brushColor(0, 255, 0) {
+PaintScene::PaintScene(QObject *parent) : currentTool('E'), currentSize(10), currentColor(0, 255, 0) {
 
     command.resize(7);
     command[0] = 0; // command type
     command[1] = 10; //
     command[2] = 0;  //  size
-    command[3] = brushColor.red();  //
-    command[4] = static_cast<unsigned char>(150);  //
-    command[5] = brushColor.blue();  //
+    command[3] = currentColor.red();  //
+    command[4] = currentColor.green();  //
+    command[5] = currentColor.blue();  //
     command[6] = 255;  //
 }
 void PaintScene::SetBrushSize(qreal size) {
-    brush_size = size;
+    currentSize = size;
 
     union {
         unsigned char bytes[2];
@@ -91,40 +93,41 @@ void PaintScene::SetBrushSize(qreal size) {
     commandBrushSize.value = size;
     command[1] = commandBrushSize.bytes[0];
     command[2] = commandBrushSize.bytes[1];
-    brush_size = size;
+    currentSize = size;
 }
-bool PaintScene::BrushStatus() {
-    return is_brush;
+char PaintScene::getStatus() const{
+    return currentTool;
 }
+
 void PaintScene::SetBrushSizeSlot(int size) {
     SetBrushSize(size);
 }
 void PaintScene::SetTransparencySlot(int value) {
     assert(value < 256 && value >= 0);
-    brushColor.setAlpha(value);
-    command[6] = brushColor.alpha();
+    currentColor.setAlpha(value);
+    command[6] = currentColor.alpha();
 }
 void PaintScene::SetRedSlot(int value) {
     assert(value < 256 && value >= 0);
-    brushColor.setRed(value);
-    command[3] = brushColor.red();
+    currentColor.setRed(value);
+    command[3] = currentColor.red();
 }
 
 void PaintScene::SetGreenSlot(int value) {
     assert(value < 256 && value >= 0);
-    brushColor.setGreen(value);
-    command[4] = brushColor.green();
+    currentColor.setGreen(value);
+    command[4] = currentColor.green();
 }
 
 void PaintScene::SetBlueSlot(int value) {
     assert(value < 256 && value >= 0);
-    brushColor.setBlue(value);
-    command[5] = brushColor.blue();
+    currentColor.setBlue(value);
+    command[5] = currentColor.blue();
 }
 void PaintScene::SetBrush(qreal brushSize, const QColor& brushColor) {
     SetBrushSizeSlot(brushSize);
-    //brush_size = brushSize;
-    this->brushColor = brushColor;
+    //currentSize = brushSize;
+    this->currentColor = brushColor;
     command[3] = brushColor.red();
     command[4] = brushColor.green();
     command[5] = brushColor.blue();
@@ -221,5 +224,13 @@ void PaintScene::executeBrush(const std::vector<unsigned char> &data) {
         }
     } else {
         // draw circle
+    }
+}
+
+void PaintScene::setStatus(const char tool){
+    if (currentTool == tool) {
+        currentTool = 'E';
+    } else {
+        currentTool = tool;
     }
 }

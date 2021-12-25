@@ -3,6 +3,7 @@
 //
 #pragma once
 #include <QToolBar>
+#include "Palette.h"
 
 class ToolsPanel : public QToolBar {
     Q_OBJECT
@@ -10,6 +11,9 @@ class ToolsPanel : public QToolBar {
 public:
     explicit ToolsPanel(QWidget *parent = nullptr);
     ~ToolsPanel() = default;
+
+signals:
+    void toolTriggered(char tool, size_t size, const QColor& color);
 
 public slots:
     void SetBrushSizeSlot(int value);
@@ -19,15 +23,24 @@ public slots:
     void SetBrushOpacitySlot(int value);
 
 private slots:
-    void BrushTriggeredSlot(qreal brushSize, const QColor& brushColor);
+    void BrushTriggeredSlot(qreal brushSize, const QColor& brushColor);//
+    void BrushTriggered();
+    void LineTriggered();
+    void RectangleTriggered();
+    void CircleTriggered();
+    void TextTriggered();
 private:
 signals:
-    void BrushTriggered(qreal brushSize, const QColor& brushColor);
+    void BrushTriggeredS(qreal brushSize, const QColor& brushColor);
 
     void SetBrushSize(int value);
     void SetBrushRed(int value);
     void SetBrushGreen(int value);
     void SetBrushBlue(int value);
     void SetBrushOpacity(int value);
+
+private:
+    Palette *palette;
+    size_t size;
 };
 

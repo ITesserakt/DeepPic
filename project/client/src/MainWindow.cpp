@@ -80,7 +80,7 @@ MainWindow::MainWindow(QWidget *parent) :
     toolsPanel = new ToolsPanel(this);
     addToolBar(Qt::LeftToolBarArea, toolsPanel);
 
-    connect(toolsPanel, &ToolsPanel::BrushTriggered, this, &MainWindow::slotBrush);
+    connect(toolsPanel, &ToolsPanel::toolTriggered, this, &MainWindow::toolTriggered);
 
     //  Status bar
     statusBar()->showMessage("Status bar");
@@ -113,33 +113,33 @@ void MainWindow::slotTimer() {
 }
 
 void MainWindow::slotBrush(qreal brushSize, const QColor &brushColor) {
-
-    if (scene->BrushStatus()) {
-        parametersPanel->clear();
-    } else {
-        scene->SetBrush(brushSize, brushColor);
-        parametersPanel->setBrush(brushSize, brushColor);
-        connect(parametersPanel, &ParametersPanel::BrushSizeChanged, scene, &PaintScene::SetBrushSize);
-        connect(parametersPanel, &ParametersPanel::BrushSizeChanged, toolsPanel, &ToolsPanel::SetBrushSizeSlot);
-
-        connect(parametersPanel, &ParametersPanel::BrushRedChanged, scene, &PaintScene::SetRedSlot);
-        connect(parametersPanel, &ParametersPanel::BrushRedChanged, toolsPanel, &ToolsPanel::SetBrushRedSlot);
-
-        connect(parametersPanel, &ParametersPanel::BrushGreenChanged, scene, &PaintScene::SetGreenSlot);
-        connect(parametersPanel, &ParametersPanel::BrushGreenChanged, toolsPanel, &ToolsPanel::SetBrushGreenSlot);
-
-        connect(parametersPanel, &ParametersPanel::BrushBlueChanged, scene, &PaintScene::SetBlueSlot);
-        connect(parametersPanel, &ParametersPanel::BrushBlueChanged, toolsPanel, &ToolsPanel::SetBrushBlueSlot);
-
-        connect(parametersPanel, &ParametersPanel::BrushOpacityChanged, scene, &PaintScene::SetTransparencySlot);
-        connect(parametersPanel, &ParametersPanel::BrushOpacityChanged, toolsPanel, &ToolsPanel::SetBrushOpacitySlot);
-    }
-    scene->ChangeBrushStatus();
+//
+//    if (scene->getStatus() != 'E') {
+//        parametersPanel->clear();
+//    } else {
+//        scene->SetBrush(brushSize, brushColor);
+//        parametersPanel->setBrush(brushSize, brushColor);
+//        connect(parametersPanel, &ParametersPanel::BrushSizeChanged, scene, &PaintScene::SetBrushSize);
+//        connect(parametersPanel, &ParametersPanel::BrushSizeChanged, toolsPanel, &ToolsPanel::SetBrushSizeSlot);
+//
+//        connect(parametersPanel, &ParametersPanel::BrushRedChanged, scene, &PaintScene::SetRedSlot);
+//        connect(parametersPanel, &ParametersPanel::BrushRedChanged, toolsPanel, &ToolsPanel::SetBrushRedSlot);
+//
+//        connect(parametersPanel, &ParametersPanel::BrushGreenChanged, scene, &PaintScene::SetGreenSlot);
+//        connect(parametersPanel, &ParametersPanel::BrushGreenChanged, toolsPanel, &ToolsPanel::SetBrushGreenSlot);
+//
+//        connect(parametersPanel, &ParametersPanel::BrushBlueChanged, scene, &PaintScene::SetBlueSlot);
+//        connect(parametersPanel, &ParametersPanel::BrushBlueChanged, toolsPanel, &ToolsPanel::SetBrushBlueSlot);
+//
+//        connect(parametersPanel, &ParametersPanel::BrushOpacityChanged, scene, &PaintScene::SetTransparencySlot);
+//        connect(parametersPanel, &ParametersPanel::BrushOpacityChanged, toolsPanel, &ToolsPanel::SetBrushOpacitySlot);
+//    }
+//    scene->ChangeBrushStatus();
 }
 
 
 //void MainWindow::executeBrush(const Curve& curve) {
-//    if (curve.brush_size < 0) {
+//    if (curve.currentSize < 0) {
 //        throw std::invalid_argument("Invalid size");
 //    }
 //    if (curve.color_red < 0 || curve.color_red > 255) {
@@ -358,6 +358,39 @@ void MainWindow::waitForImage(const QString& path) {
     //while (!QFile(path).exists()) {}
 
 
+}
+void MainWindow::toolTriggered(const char tool, size_t size, const QColor& color) {
+    std::cout << tool << std::endl;
+    scene->setStatus(tool);
+
+    parametersPanel->clear();
+    if (tool != 'T') {
+        std::cout << "1111" << std::endl;
+        if (scene->getStatus() == 'B') {
+            scene->SetBrushSize(size);
+            scene->SetBrush(size, color);
+            parametersPanel->setBrush(size, color);
+            standardPanelsConnect();
+        } else {
+
+        }
+    }
+}
+void MainWindow::standardPanelsConnect() {
+    connect(parametersPanel, &ParametersPanel::BrushSizeChanged, scene, &PaintScene::SetBrushSize);
+    connect(parametersPanel, &ParametersPanel::BrushSizeChanged, toolsPanel, &ToolsPanel::SetBrushSizeSlot);
+
+    connect(parametersPanel, &ParametersPanel::BrushRedChanged, scene, &PaintScene::SetRedSlot);
+    connect(parametersPanel, &ParametersPanel::BrushRedChanged, toolsPanel, &ToolsPanel::SetBrushRedSlot);
+
+    connect(parametersPanel, &ParametersPanel::BrushGreenChanged, scene, &PaintScene::SetGreenSlot);
+    connect(parametersPanel, &ParametersPanel::BrushGreenChanged, toolsPanel, &ToolsPanel::SetBrushGreenSlot);
+
+    connect(parametersPanel, &ParametersPanel::BrushBlueChanged, scene, &PaintScene::SetBlueSlot);
+    connect(parametersPanel, &ParametersPanel::BrushBlueChanged, toolsPanel, &ToolsPanel::SetBrushBlueSlot);
+
+    connect(parametersPanel, &ParametersPanel::BrushOpacityChanged, scene, &PaintScene::SetTransparencySlot);
+    connect(parametersPanel, &ParametersPanel::BrushOpacityChanged, toolsPanel, &ToolsPanel::SetBrushOpacitySlot);
 }
 ///
 
