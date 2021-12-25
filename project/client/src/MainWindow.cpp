@@ -371,8 +371,21 @@ void MainWindow::toolTriggered(const char tool, size_t size, const QColor& color
             scene->SetBrush(size, color);
             parametersPanel->setBrush(size, color);
             standardPanelsConnect();
-        } else {
-
+        } else  if (scene->getStatus() == 'L'){
+            scene->SetBrushSize(size);
+            scene->SetBrush(size, color);
+            parametersPanel->setBrush(size, color);
+            standardPanelsConnect();
+        } else  if (scene->getStatus() == 'C'){
+            scene->SetBrushSize(size);
+            scene->SetBrush(size, color);
+            parametersPanel->setBrush(size, color);
+            standardPanelsConnect();
+        } else  if (scene->getStatus() == 'R'){
+            scene->SetBrushSize(size);
+            scene->SetBrush(size, color);
+            parametersPanel->setBrush(size, color);
+            standardPanelsConnect();
         }
     }
 }

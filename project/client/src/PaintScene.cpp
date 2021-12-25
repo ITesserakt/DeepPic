@@ -25,6 +25,9 @@ void PaintScene::addPointToCommand(QPoint& point) {
 
 
 void PaintScene::mousePressEvent(QGraphicsSceneMouseEvent *event) {
+    command[0] = currentTool;
+    previous_point = event->scenePos().toPoint();
+
     if (currentTool == 'B') {
         addEllipse(event->scenePos().x() - currentSize / 2,
                    event->scenePos().y() - currentSize / 2,
@@ -32,8 +35,9 @@ void PaintScene::mousePressEvent(QGraphicsSceneMouseEvent *event) {
                    currentSize,
                    QPen(Qt::NoPen),
                    QBrush(currentColor));
-        previous_point = event->scenePos().toPoint();
-        command[0] = 'B';
+
+        addPointToCommand(previous_point);
+    } else if (currentTool == 'L' || currentTool == 'C') {
         addPointToCommand(previous_point);
     }
 }
@@ -52,18 +56,56 @@ void PaintScene::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
 
 }
 
+qreal getDistance(const QPoint& p1, const QPoint& p2) {
+    return sqrt((p2.x() - p1.x()) * (p2.x() - p1.x()) + (p2.y() - p1.y()) * (p2.y() - p1.y()));
+}
+
 void PaintScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
-    if (currentTool == 'B') {
-        char separator = ' ';
+    if (currentTool == 'L') {
+        addLine(previous_point.x(),
+                previous_point.y(),
+                event->scenePos().x(),
+                event->scenePos().y(),
+                QPen(currentColor, currentSize, Qt::SolidLine, Qt::RoundCap));
 
-        std::basic_string<char> encodedCommand = base64_encode(&command.front(), command.size());
-        json command_json = {{"target", "sharing_command"}, {"command", encodedCommand}};
-        std::string command_str = command_json.dump();
+        previous_point = event->scenePos().toPoint();
+        addPointToCommand(previous_point);
+    } else if (currentTool == 'C') {
+        qreal diameter = 2 * getDistance(previous_point, event->scenePos().toPoint());
+        addEllipse(previous_point.x() - diameter / 2,
+                   previous_point.y() - diameter / 2,
+                   diameter,
+                   diameter,
+                   QPen(Qt::NoPen),
+                   QBrush(currentColor));
 
-        emit(writeCurveSignal(command_str));
+        previous_point.setX(diameter);
+        addPointToCommand(previous_point);
 
-        command.resize(7); // clear command
+    } else if (currentTool == 'R') {
+        qreal x1 = previous_point.x() < event->scenePos().x() ?
+                   previous_point.x() : event->scenePos().x();
+        qreal y1 = previous_point.y() < event->scenePos().y() ?
+                   previous_point.y() : event->scenePos().y();
+
+        qreal w = abs(previous_point.x() - event->scenePos().x());
+        qreal h = abs(previous_point.y() - event->scenePos().y());
+
+        addRect(x1,
+                y1,
+                w,
+                h,
+                QPen(Qt::NoPen),
+                QBrush(currentColor));
     }
+
+    std::basic_string<char> encodedCommand = base64_encode(&command.front(), command.size());
+    json command_json = {{"target", "sharing_command"}, {"command", encodedCommand}};
+    std::string command_str = command_json.dump();
+
+    emit(writeCurveSignal(command_str));
+
+    command.resize(7);
 }
 
 void PaintScene::ChangeBrushStatus() {
@@ -169,7 +211,7 @@ void PaintScene::execute(const QString& data) {
     if (currentCommand == 'B') {
         executeBrush(receivedCommand);
     } else if (currentCommand == 'L') {
-        //executeLine(data);
+        executeLine(receivedCommand);
     } else if (currentCommand == 'C') {
         //executeCircle(data);
     } else if (currentCommand == 'R') {
@@ -233,4 +275,36 @@ void PaintScene::setStatus(const char tool){
     } else {
         currentTool = tool;
     }
+}
+void PaintScene::executeLine(const std::vector<unsigned char> &data) {
+    union {
+        unsigned char bytes[2];
+        int16_t size = 0;
+    } brushSizeExec;
+    brushSizeExec.bytes[0] = data[1];
+    brushSizeExec.bytes[1] = data[2];
+    QColor brushColorExec((unsigned char)data[3], (unsigned char)data[4],
+                          (unsigned char)data[5], (unsigned char)data[6]);
+    union {
+        unsigned char bytes[4];
+        int16_t coord[2] = {0, 0}; // 0 - x, 1 - y
+    } pointUnion;
+    pointUnion.bytes[0] = data[7];
+    pointUnion.bytes[1] = data[8];
+    pointUnion.bytes[2] = data[9];
+    pointUnion.bytes[3] = data[10];
+
+    union {
+        unsigned char bytes[2];
+        int16_t value = 0;
+    } diameter;
+    pointUnion.bytes[0] = data[11];
+    pointUnion.bytes[1] = data[12];
+
+    addEllipse(pointUnion.coord[0] - diameter.value / 2,
+               pointUnion.coord[1] - diameter.value / 2,
+               diameter.value,
+               diameter.value,
+               QPen(Qt::NoPen),
+               QBrush(currentColor));
 }

@@ -74,6 +74,7 @@ private:
 
 private:
     void executeBrush(const std::vector<unsigned char> &data);
+    void executeLine(const std::vector<unsigned char> &data);
 
     void mousePressEvent(QGraphicsSceneMouseEvent * event);
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
