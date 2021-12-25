@@ -141,6 +141,7 @@ void Connector::successfulShareSlot(const QString &message) {
     canselButton = new QPushButton("Cansel", this);
     connect(canselButton, &QPushButton::clicked, this, &Connector::initSlot);
     auto label = new QLabel(this);
+    label->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
     clear();
     QString msg = "You're sharing the document.\nAddress: " + address + "\nPort: " + port + "\nToken: " + token;
@@ -155,6 +156,7 @@ void Connector::successfulConnectSlot(const QString &message) {
     canselButton = new QPushButton("Cansel", this);
     connect(canselButton, &QPushButton::clicked, this, &Connector::initSlot);
     auto label = new QLabel(this);
+    label->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
     clear();
     QString msg = "You've joined the document.\nAddress: " + address + "\nPort: " + port + "\nToken: " + token;
