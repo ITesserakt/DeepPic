@@ -1,4 +1,5 @@
 #include "PaintScene.h"
+#include "Base64.h"
 #include <QPainter>
 #include <QGraphicsPixmapItem>
 #include <sstream>
@@ -7,6 +8,22 @@
 
 using json = nlohmann::json;
 
+void PaintScene::addPointToCommand(QPoint& point) {
+    union {
+        unsigned char bytes[4];
+        int16_t coord[2] = {0, 0}; // 0 - x, 1 - y
+    } pointUnion;
+    pointUnion.coord[0] = point.x();
+    pointUnion.coord[1] = point.y();
+
+    command.push_back(pointUnion.bytes[0]);
+    command.push_back(pointUnion.bytes[1]);
+    command.push_back(pointUnion.bytes[2]);
+    command.push_back(pointUnion.bytes[3]);
+}
+
+
+
 void PaintScene::mousePressEvent(QGraphicsSceneMouseEvent *event) {
     if (is_brush) {
         addEllipse(event->scenePos().x() - brush_size / 2,
@@ -14,11 +31,11 @@ void PaintScene::mousePressEvent(QGraphicsSceneMouseEvent *event) {
                    brush_size,
                    brush_size,
                    QPen(Qt::NoPen),
-                   QBrush(brush_color));
+                   QBrush(brushColor));
         previous_point = event->scenePos().toPoint();
-        curve.push_back(previous_point);
+        command[0] = 'B';
+        addPointToCommand(previous_point);
     }
-
 }
 
 void PaintScene::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
@@ -27,70 +44,91 @@ void PaintScene::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
                 previous_point.y(),
                 event->scenePos().x(),
                 event->scenePos().y(),
-                QPen(brush_color, brush_size, Qt::SolidLine, Qt::RoundCap));
+                QPen(brushColor, brush_size, Qt::SolidLine, Qt::RoundCap));
         previous_point = event->scenePos().toPoint();
-        curve.push_back(previous_point);
+        addPointToCommand(previous_point);
     }
-}
 
+
+}
 
 void PaintScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
     if (is_brush) {
         char separator = ' ';
-        std::string message = std::to_string(brush_size) + separator + std::to_string(brush_color.red()) + separator + std::to_string(brush_color.green()) + separator + std::to_string(brush_color.blue()) + separator + std::to_string(brush_color.alpha()) + separator;
 
-
-        for (auto &point : curve) {
-            message += std::to_string(point.x()) + separator + std::to_string(point.y()) + separator;
-        }
-
-        // TODO: 1) message -> command
-        json command_json = {{"target", "sharing_command"}, {"command", message}};
+        std::basic_string<char> encodedCommand = base64_encode(&command.front(), command.size());
+        json command_json = {{"target", "sharing_command"}, {"command", encodedCommand}};
         std::string command_str = command_json.dump();
 
         emit(writeCurveSignal(command_str));
 
-        curve.clear();
+        command.resize(7); // clear command
     }
 }
+
 void PaintScene::ChangeBrushStatus() {
     is_brush = !is_brush;
 }
-PaintScene::PaintScene(QObject *parent) {
-    //connect(this, &PaintScene::writeCurveSignal, this, &PaintScene::readCurveSlot); //
-    brush_color.setRgb(0,255,0);
+PaintScene::PaintScene(QObject *parent) : brush_size(10), brushColor(0, 255, 0) {
 
+    command.resize(7);
+    command[0] = 0; // command type
+    command[1] = 10; //
+    command[2] = 0;  //  size
+    command[3] = brushColor.red();  //
+    command[4] = static_cast<unsigned char>(150);  //
+    command[5] = brushColor.blue();  //
+    command[6] = 255;  //
 }
-void PaintScene::SetBrushSize(qreal brush_size) {
-    this->brush_size = brush_size;
+void PaintScene::SetBrushSize(qreal size) {
+    brush_size = size;
+
+    union {
+        unsigned char bytes[2];
+        int16_t value;
+    } commandBrushSize;
+
+    commandBrushSize.value = size;
+    command[1] = commandBrushSize.bytes[0];
+    command[2] = commandBrushSize.bytes[1];
+    brush_size = size;
 }
 bool PaintScene::BrushStatus() {
     return is_brush;
 }
 void PaintScene::SetBrushSizeSlot(int size) {
-    brush_size = size;
+    SetBrushSize(size);
 }
 void PaintScene::SetTransparencySlot(int value) {
     assert(value < 256 && value >= 0);
-    brush_color.setAlpha(value);
+    brushColor.setAlpha(value);
+    command[6] = brushColor.alpha();
 }
 void PaintScene::SetRedSlot(int value) {
     assert(value < 256 && value >= 0);
-    brush_color.setRed(value);
+    brushColor.setRed(value);
+    command[3] = brushColor.red();
 }
 
 void PaintScene::SetGreenSlot(int value) {
     assert(value < 256 && value >= 0);
-    brush_color.setGreen(value);
+    brushColor.setGreen(value);
+    command[4] = brushColor.green();
 }
 
 void PaintScene::SetBlueSlot(int value) {
     assert(value < 256 && value >= 0);
-    brush_color.setBlue(value);
+    brushColor.setBlue(value);
+    command[5] = brushColor.blue();
 }
 void PaintScene::SetBrush(qreal brushSize, const QColor& brushColor) {
-    brush_size = brushSize;
-    brush_color = brushColor;
+    SetBrushSizeSlot(brushSize);
+    //brush_size = brushSize;
+    this->brushColor = brushColor;
+    command[3] = brushColor.red();
+    command[4] = brushColor.green();
+    command[5] = brushColor.blue();
+    command[6] = brushColor.alpha();
 }
 
 void PaintScene::readCurveSlot(const QString &message) {
@@ -118,5 +156,70 @@ void PaintScene::readCurveSlot(const QString &message) {
                 brushCurve.coords[i - 1].y(),
                 QPen(QColor(brushCurve.color_red, brushCurve.color_green, brushCurve.color_blue, brushCurve.opacity),
                      brushCurve.brush_size, Qt::SolidLine, Qt::RoundCap));
+    }
+}
+
+void PaintScene::execute(const QString& data) {
+    std::vector<unsigned char> receivedCommand = base64_decode(data.toStdString());
+
+    unsigned char currentCommand = receivedCommand[0];
+    if (currentCommand == 'B') {
+        executeBrush(receivedCommand);
+    } else if (currentCommand == 'L') {
+        //executeLine(data);
+    } else if (currentCommand == 'C') {
+        //executeCircle(data);
+    } else if (currentCommand == 'R') {
+        //executeRectangle(data);
+    } else if (currentCommand == 'T') {
+        //executeText(data);
+    } else {
+        assert(false);;
+    }
+}
+void PaintScene::executeBrush(const std::vector<unsigned char> &data) {
+    union {
+        unsigned char bytes[2];
+        int16_t size = 0;
+    } brushSizeExec;
+
+    brushSizeExec.bytes[0] = data[1];
+    brushSizeExec.bytes[1] = data[2];
+
+    QColor brushColorExec((unsigned char)data[3], (unsigned char)data[4],
+                          (unsigned char)data[5], (unsigned char)data[6]);
+
+    union {
+        unsigned char bytes[4];
+        int16_t coord[2] = {0, 0}; // 0 - x, 1 - y
+    } pointUnion;
+
+    pointUnion.bytes[0] = data[7];
+    pointUnion.bytes[1] = data[8];
+    pointUnion.bytes[2] = data[9];
+    pointUnion.bytes[3] = data[10];
+
+    size_t numb_of_points = (data.size() - 7) / 4;// 7 bytes - command + color + size
+                                                  // 4 bytes - each point
+    if (numb_of_points > 1) {
+        int16_t previousPoint_x = pointUnion.coord[0];
+        int16_t previousPoint_y = pointUnion.coord[1];
+        for (size_t i = 1; i < numb_of_points; ++i) {
+            pointUnion.bytes[0] = data[7 + i * 4];
+            pointUnion.bytes[1] = data[8 + i * 4];
+            pointUnion.bytes[2] = data[9 + i * 4];
+            pointUnion.bytes[3] = data[10 + i * 4];
+            int16_t currentPoint_x = pointUnion.coord[0];
+            int16_t currentPoint_y = pointUnion.coord[1];
+
+            addLine(currentPoint_x, currentPoint_y,
+                    previousPoint_x, previousPoint_y,
+                    QPen(brushColorExec, brushSizeExec.size, Qt::SolidLine, Qt::RoundCap));
+
+            previousPoint_x = currentPoint_x;
+            previousPoint_y = currentPoint_y;
+        }
+    } else {
+        // draw circle
     }
 }

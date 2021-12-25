@@ -37,17 +37,19 @@ public:
     void SetBrush(qreal brushSize = 10, const QColor& brushColor = Qt::red);
 
 signals:
-//    void PushCurve(const Curve& curve);
+    //    void PushCurve(const Curve& curve);
     void writeCurveSignal(std::string& curve);
+    void writeCurve(const std::vector<unsigned char>& data);
 
 public slots:
+    void execute(const QString& message);
     void SetBrushSizeSlot(int size);
     void SetTransparencySlot(int transparency);
     void SetRedSlot(int transparency);
     void SetGreenSlot(int transparency);
     void SetBlueSlot(int transparency);
 
-//    void PaintCurveSlot(const Curve& curve);
+    //    void PaintCurveSlot(const Curve& curve);
 
     void readCurveSlot(const QString& message);
 
@@ -58,13 +60,24 @@ private:
 
     std::vector<QPoint> curve;
 
-    int32_t brush_size = 10;
+////    command format:
+//      0 byte: command type
+//      1-2 byte: size
+//      3-6 byte: color
+//      7-.. byte: points
+    std::vector<unsigned char> command;
 
-    QColor brush_color;
+    int32_t brush_size;
+
+    QColor brushColor;
 
 private:
+    void executeBrush(const std::vector<unsigned char> &data);
+
     void mousePressEvent(QGraphicsSceneMouseEvent * event);
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
+
+    void addPointToCommand(QPoint& point);
 
 };

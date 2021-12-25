@@ -35,7 +35,7 @@ MainWindow::MainWindow(QWidget *parent) :
     setCentralWidget(canvas);
 
     connect(scene, &PaintScene::writeCurveSignal, this, &MainWindow::writeSlot);
-    connect(this, &MainWindow::addCurve, scene, &PaintScene::readCurveSlot);
+    connect(this, &MainWindow::addCurve, scene, &PaintScene::execute);
 
     // MenuBar
     auto *file_open = new QAction("&Open", this);
@@ -210,6 +210,7 @@ void MainWindow::execute(std::string &&message) {
         // TODO: if need to draw a line
     if (parse_message["target"] == "sharing_command") {
         std::cout << "TODO: if need to draw a line" << std::endl;
+        std::cout << "command: " << parse_message["command"] << std::endl;
         QString command = QString::fromStdString(parse_message["command"]);
 //        std::string command = "20 0 128 0 255 402 243 400 248";
         emit(addCurve(command));
