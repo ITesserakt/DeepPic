@@ -101,8 +101,15 @@ MainWindow::~MainWindow() {}
 
 void MainWindow::slotTimer() {
     scene->setSceneRect(0, 0, canvas->width() - 16, canvas->height() - 16);
-    timer->stop();
+    //timer->stop();
     canvas->update();
+    if (QFile("../Data/canvas2.jpg").exists()) {
+        loadImageFrom("../Data/canvas2.jpg");
+        timer->stop();
+
+        QFile file("../Data/canvas2.jpg");
+        file.remove();
+    }
 }
 
 void MainWindow::slotBrush(qreal brushSize, const QColor &brushColor) {
@@ -186,6 +193,7 @@ void MainWindow::execute(std::string &&message) {
         std::cout << "// TODO: if sharing succeeded" << std::endl;
         forDocumentConnection_->write(to_connect.dump());
         emit(successfulShareSignal(auth_token));
+        timer->stop();
     } else
 
         // TODO: if joining failed
@@ -237,9 +245,14 @@ void MainWindow::execute(std::string &&message) {
 
         // TODO: if need to save Image
     if (parse_message["target"] == "get_document" && parse_message["status"].is_null()) {
-        saveImageTo("../data/canvas1.jpg"); // <- TODO: change path
+        if (!QDir("../Data").exists()){
+            QDir().mkdir("../Data");
+        }
+
+        std::cout << " TODO: if need to save Image" << std::endl;
+        saveImageTo("../Data/canvas1.jpg"); // <- TODO: change path
         // получаем массив байт из изображения
-        std::ifstream input("../data/canvas1.jpg", std::ios::binary);
+        std::ifstream input("../Data/canvas1.jpg", std::ios::binary);
         std::vector<unsigned char> image_vector(std::istreambuf_iterator<char>(input), {});
         std::string base64_image = base64_encode(&image_vector.front(), image_vector.size());
         json json_msg = {{"status",   "OK"},
@@ -252,10 +265,17 @@ void MainWindow::execute(std::string &&message) {
     } else
         // TODO: if need to setImage Image
     if (parse_message["target"] == "get_document" && !parse_message["status"].is_null() && parse_message["status"] == "OK") {
+        if (!QDir("../Data").exists()){
+            QDir().mkdir("../Data");
+        }
+
+        std::cout << " TODO: if need to setImage Image" << std::endl;
         std::vector<unsigned char> image_vector = base64_decode(parse_message["document"]);
-        std::ofstream outfile("../data/canvas2.jpg", std::ios::out | std::ios::binary);
+        std::ofstream outfile("../Data/canvas2.jpg", std::ios::out | std::ios::binary);
         outfile.write(reinterpret_cast<const char *>(image_vector.data()), image_vector.size());
-        loadImageFrom("../data/canvas2.jpg"); // <- TODO: change path
+
+        QFile file("../Data/canvas1.jpg");
+        file.remove();
     }
 }
 
@@ -333,6 +353,11 @@ void MainWindow::saveImageTo(const QString &path) {
     canvas->setRenderHint(QPainter::Antialiasing);
     canvas->render(&painter);
     image.save(path, "JPG");
+}
+void MainWindow::waitForImage(const QString& path) {
+    //while (!QFile(path).exists()) {}
+
+
 }
 ///
 

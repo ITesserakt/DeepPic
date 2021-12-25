@@ -70,6 +70,7 @@ private:
     void loadImageFrom(const QString& path);
     void loadImageFrom(const std::vector <unsigned char> buf);
     void saveImageTo(const QString& path);
+    void waitForImage(const QString& path);
     ///
     bool is_author_document = false;
 

@@ -16,8 +16,6 @@ using json = nlohmann::json;
 
 Connector::Connector(QWidget *parent) : QToolBar(parent) {
     connect(this, &Connector::initSignal, this, &Connector::initSlot);
-//    connect(this, &Connector::connectSignal, this, &Connector::connectSlot);
-//    connect(this, &Connector::shareSignal, this, &Connector::shareSlot);
     emit(initSignal());
 }
 

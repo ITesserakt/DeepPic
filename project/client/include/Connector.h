@@ -29,9 +29,9 @@ private:
     QPushButton* canselButton;
     //QLabel* message;
 
-    QString address = "";
-    QString token = "";
-    QString port = "";
+    QString address;
+    QString token;
+    QString port;
 
 signals:
     void initSignal();
