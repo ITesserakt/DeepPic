@@ -15,38 +15,35 @@ void ParametersPanel::setBrush(qreal brushSize, const QColor& brushColor) {
 
     Changer *size_changer = new Changer("Size", brushSize, 500, this);
     addWidget(size_changer);
-    connect(size_changer, QOverload<int>::of(&Changer::valueChanged), this, &ParametersPanel::BrushSizeChangedSlot);
+    connect(size_changer, QOverload<int>::of(&Changer::valueChanged), this,
+            &ParametersPanel::BrushSizeChangedSlot);
 
     addSeparator();
 
 
-    Palette *palette = new Palette(this);
-    palette->SetColor(brushColor.red(), brushColor.green(), brushColor.blue());
 
     Changer *red_changer = new Changer("Red", brushColor.red(), 255, this);
-    connect(red_changer, QOverload<int>::of(&Changer::valueChanged), this, &ParametersPanel::BrushRedChangedSlot);
-    connect(red_changer, QOverload<int>::of(&Changer::valueChanged), palette, (&Palette::setRed));
+    connect(red_changer, QOverload<int>::of(&Changer::valueChanged), this,
+            &ParametersPanel::BrushRedChangedSlot);
     addWidget(red_changer);
 
     Changer *green_changer = new Changer("Green", brushColor.green(), 255, this);
-    connect(green_changer, QOverload<int>::of(&Changer::valueChanged), this, &ParametersPanel::BrushGreenChangedSlot);
-    connect(green_changer, QOverload<int>::of(&Changer::valueChanged), palette, (&Palette::setGreen));
+    connect(green_changer, QOverload<int>::of(&Changer::valueChanged), this,
+            &ParametersPanel::BrushGreenChangedSlot);
 
     addWidget(green_changer);
 
     Changer *blue_changer = new Changer("Blue", brushColor.blue(), 255, this);
-    connect(blue_changer, QOverload<int>::of(&Changer::valueChanged), this, &ParametersPanel::BrushBlueChangedSlot);
-    connect(blue_changer, QOverload<int>::of(&Changer::valueChanged), palette, (&Palette::setBlue));
+    connect(blue_changer, QOverload<int>::of(&Changer::valueChanged), this,
+            &ParametersPanel::BrushBlueChangedSlot);
 
     addWidget(blue_changer);
 
-
-    //        Palette palette;
-    addWidget(palette);
     addSeparator();
 
     Changer *opacity_changer = new Changer("Opacity", 100, 100, this);
-    connect(opacity_changer, QOverload<int>::of(&Changer::valueChanged), this, &ParametersPanel::BrushOpacityChangedSlot);
+    connect(opacity_changer, QOverload<int>::of(&Changer::valueChanged), this,
+            &ParametersPanel::BrushOpacityChangedSlot);
     addWidget(opacity_changer);
 
     setStyleSheet(QString("QToolBar {spacing: %1}").arg(10));

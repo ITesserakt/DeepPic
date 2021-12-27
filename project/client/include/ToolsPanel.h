@@ -22,6 +22,9 @@ public slots:
     void SetBrushBlueSlot(int value);
     void SetBrushOpacitySlot(int value);
 
+    void unlockTools();
+    //void lockTools();
+
 private slots:
     void BrushTriggeredSlot(qreal brushSize, const QColor& brushColor);//
     void BrushTriggered();
@@ -40,6 +43,12 @@ signals:
     void SetBrushOpacity(int value);
 
 private:
+    QAction *brush;
+    QAction *line;
+    QAction *rectangle;
+    QAction *circle;
+
+
     Palette *palette;
     size_t size;
 };

@@ -194,6 +194,7 @@ void MainWindow::execute(std::string &&message) {
         forDocumentConnection_->write(to_connect.dump());
         emit(successfulShareSignal(auth_token));
         timer->stop();
+        toolsPanel->unlockTools();
     } else
 
         // TODO: if joining failed
@@ -213,6 +214,7 @@ void MainWindow::execute(std::string &&message) {
             forDocumentConnection_->write(json_msg.dump());
         }
         emit(successfulConnectSignal(auth_token));
+        toolsPanel->unlockTools();
     } else
 
         // TODO: if need to draw a line

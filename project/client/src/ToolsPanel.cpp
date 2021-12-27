@@ -18,27 +18,32 @@ ToolsPanel::ToolsPanel(QWidget *parent) : QToolBar(parent), size(20) {
 //    addAction(brush);
 
     brush_pm.load(hardPath + "brush.png");
-    QAction *brush = addAction(brush_pm, "B");
+    brush = addAction(brush_pm, "B");
+    brush->setEnabled(false);
     connect(brush, &QAction::triggered, this, &ToolsPanel::BrushTriggered);
 
     brush_pm.load(hardPath + "line.png");
-    QAction *line = addAction(brush_pm, "L");
+    line = addAction(brush_pm, "L");
+    line->setEnabled(false);
     connect(line, &QAction::triggered, this, &ToolsPanel::LineTriggered);
 
     brush_pm.load(hardPath + "rectangle.png");
-    QAction *rectangle = addAction(brush_pm, "R");
+    rectangle = addAction(brush_pm, "R");
+    rectangle->setEnabled(false);
     connect(rectangle, &QAction::triggered, this, &ToolsPanel::RectangleTriggered);
 
     brush_pm.load(hardPath + "circle.png");
-    QAction *circle = addAction(brush_pm, "C");
+    circle = addAction(brush_pm, "C");
+    circle->setEnabled(false);
     connect(circle, &QAction::triggered, this, &ToolsPanel::CircleTriggered);
 
     brush_pm.load(hardPath + "text.png");
     QAction *text = addAction(brush_pm, "T");
+    text->setEnabled(false);
     connect(text, &QAction::triggered, this, &ToolsPanel::TextTriggered);
 
     QAction *space = addAction("");
-    text->setEnabled(false);
+
 
 //    connect(brush, &Brush::BrushTriggeredS, this, &ToolsPanel::BrushTriggeredSlot);
 //
@@ -88,4 +93,10 @@ void ToolsPanel::CircleTriggered() {
 }
 void ToolsPanel::TextTriggered() {
     emit(toolTriggered('T', size, palette->getColor()));
+}
+void ToolsPanel::unlockTools() {
+    brush->setEnabled(true);
+    line->setEnabled(true);
+    rectangle->setEnabled(true);
+    circle->setEnabled(true);
 }
