@@ -73,8 +73,13 @@ private:
     QColor currentColor;
 
 private:
+    void configureBrush(const std::vector<unsigned char> &data);
+
     void executeBrush(const std::vector<unsigned char> &data);
     void executeLine(const std::vector<unsigned char> &data);
+    void executeCircle(const std::vector<unsigned char> &data);
+    void executeRectangle(const std::vector<unsigned char> &data);
+//    void executeText(const std::vector<unsigned char> &data);
 
     void mousePressEvent(QGraphicsSceneMouseEvent * event);
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);

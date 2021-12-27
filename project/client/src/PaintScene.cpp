@@ -79,7 +79,7 @@ void PaintScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
                    QPen(Qt::NoPen),
                    QBrush(currentColor));
 
-        previous_point.setX(diameter);
+        previous_point = event->scenePos().toPoint();
         addPointToCommand(previous_point);
 
     } else if (currentTool == 'R') {
@@ -213,7 +213,7 @@ void PaintScene::execute(const QString& data) {
     } else if (currentCommand == 'L') {
         executeLine(receivedCommand);
     } else if (currentCommand == 'C') {
-        //executeCircle(data);
+        executeCircle(receivedCommand);
     } else if (currentCommand == 'R') {
         //executeRectangle(data);
     } else if (currentCommand == 'T') {
@@ -301,10 +301,43 @@ void PaintScene::executeLine(const std::vector<unsigned char> &data) {
     pointUnion.bytes[0] = data[11];
     pointUnion.bytes[1] = data[12];
 
+
+
     addEllipse(pointUnion.coord[0] - diameter.value / 2,
                pointUnion.coord[1] - diameter.value / 2,
                diameter.value,
                diameter.value,
                QPen(Qt::NoPen),
                QBrush(currentColor));
+}
+void PaintScene::executeCircle(const std::vector<unsigned char> &data) {
+
+    QColor brushColorExec((unsigned char)data[3], (unsigned char)data[4],
+                          (unsigned char)data[5], (unsigned char)data[6]);
+    union {
+        unsigned char bytes[4];
+        int16_t coord[2] = {0, 0}; // 0 - x, 1 - y
+    } pointUnion;
+    pointUnion.bytes[0] = data[7];
+    pointUnion.bytes[1] = data[8];
+    pointUnion.bytes[2] = data[9];
+    pointUnion.bytes[3] = data[10];
+
+    int16_t referencePointX = pointUnion.coord[0];
+    int16_t referencePointY = pointUnion.coord[1];
+
+    pointUnion.bytes[0] = data[11];
+    pointUnion.bytes[1] = data[12];
+    pointUnion.bytes[2] = data[13];
+    pointUnion.bytes[3] = data[14];
+
+    qreal diameter = 2 * getDistance({referencePointX, referencePointY},
+                                     {pointUnion.coord[0], pointUnion.coord[1]});
+
+    addEllipse(referencePointX - diameter / 2,
+               referencePointY - diameter / 2,
+               diameter,
+               diameter,
+               QPen(Qt::NoPen),
+               QBrush(brushColorExec));
 }
