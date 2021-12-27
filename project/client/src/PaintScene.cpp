@@ -97,15 +97,22 @@ void PaintScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
                 h,
                 QPen(Qt::NoPen),
                 QBrush(currentColor));
+        QPoint tempPoint(x1, y1);
+        addPointToCommand(tempPoint);
+        tempPoint.setX(w);
+        tempPoint.setY(h);
+        addPointToCommand(tempPoint);
     }
 
-    std::basic_string<char> encodedCommand = base64_encode(&command.front(), command.size());
-    json command_json = {{"target", "sharing_command"}, {"command", encodedCommand}};
-    std::string command_str = command_json.dump();
+    if (currentTool != 'E') {
+        std::basic_string<char> encodedCommand = base64_encode(&command.front(), command.size());
+        json command_json = {{"target", "sharing_command"}, {"command", encodedCommand}};
+        std::string command_str = command_json.dump();
 
-    emit(writeCurveSignal(command_str));
+        emit(writeCurveSignal(command_str));
 
-    command.resize(7);
+        command.resize(7);
+    }
 }
 
 void PaintScene::ChangeBrushStatus() {
@@ -215,7 +222,7 @@ void PaintScene::execute(const QString& data) {
     } else if (currentCommand == 'C') {
         executeCircle(receivedCommand);
     } else if (currentCommand == 'R') {
-        //executeRectangle(data);
+        executeRectangle(receivedCommand);
     } else if (currentCommand == 'T') {
         //executeText(data);
     } else {
@@ -336,4 +343,30 @@ void PaintScene::executeCircle(const std::vector<unsigned char> &data) {
                diameter,
                QPen(Qt::NoPen),
                QBrush(brushColorExec));
+}
+void PaintScene::executeRectangle(const std::vector<unsigned char> &data) {
+    QColor brushColorExec((unsigned char)data[3], (unsigned char)data[4],
+                          (unsigned char)data[5], (unsigned char)data[6]);
+    union {
+        unsigned char bytes[4];
+        int16_t coord[2] = {0, 0}; // 0 - x, 1 - y
+    } pointUnion;
+    pointUnion.bytes[0] = data[7];
+    pointUnion.bytes[1] = data[8];
+    pointUnion.bytes[2] = data[9];
+    pointUnion.bytes[3] = data[10];
+
+    QPoint point1(pointUnion.coord[0], pointUnion.coord[1]);
+
+    pointUnion.bytes[0] = data[11];
+    pointUnion.bytes[1] = data[12];
+    pointUnion.bytes[2] = data[13];
+    pointUnion.bytes[3] = data[14];
+
+    addRect(point1.x(),
+            point1.y(),
+            pointUnion.coord[0],
+            pointUnion.coord[1],
+            QPen(Qt::NoPen),
+            QBrush(brushColorExec));
 }
