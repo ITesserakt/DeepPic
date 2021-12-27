@@ -272,7 +272,12 @@ void PaintScene::executeBrush(const std::vector<unsigned char> &data) {
             previousPoint_y = currentPoint_y;
         }
     } else {
-        // draw circle
+        addEllipse(pointUnion.coord[0] - brushSizeExec.size / 2,
+                   pointUnion.coord[1] - brushSizeExec.size / 2,
+                   brushSizeExec.size,
+                   brushSizeExec.size,
+                   QPen(Qt::NoPen),
+                   QBrush(brushColorExec));
     }
 }
 
