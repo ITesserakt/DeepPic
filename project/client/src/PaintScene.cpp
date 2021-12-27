@@ -294,21 +294,17 @@ void PaintScene::executeLine(const std::vector<unsigned char> &data) {
     pointUnion.bytes[2] = data[9];
     pointUnion.bytes[3] = data[10];
 
-    union {
-        unsigned char bytes[2];
-        int16_t value = 0;
-    } diameter;
+    QPoint point1(pointUnion.coord[0], pointUnion.coord[1]);
+
     pointUnion.bytes[0] = data[11];
     pointUnion.bytes[1] = data[12];
+    pointUnion.bytes[2] = data[13];
+    pointUnion.bytes[3] = data[14];
 
 
-
-    addEllipse(pointUnion.coord[0] - diameter.value / 2,
-               pointUnion.coord[1] - diameter.value / 2,
-               diameter.value,
-               diameter.value,
-               QPen(Qt::NoPen),
-               QBrush(currentColor));
+    addLine(point1.x(), point1.y(),
+            pointUnion.coord[0], pointUnion.coord[1],
+            QPen(brushColorExec, brushSizeExec.size, Qt::SolidLine, Qt::RoundCap));
 }
 void PaintScene::executeCircle(const std::vector<unsigned char> &data) {
 
